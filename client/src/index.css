@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    overflow: hidden; /* Hide scrollbars */
+  }
+
+.ant-form-item-control-input-content{
+    display: flex;
+}
