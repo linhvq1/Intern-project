@@ -151,7 +151,7 @@ function ScheduleList() {
           </Row>
         </Form>
       </div>
-      <CustomTable />
+      <CustomTable/>
     </div>
   );
 }
