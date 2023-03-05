@@ -9,7 +9,6 @@ import Home from './pages/Home';
  
 const commonStore = stores.commonStore
 function App() {
-  console.log(commonStore.isLoading)
   return (
     <Provider {...stores}>
       <Router history={Navigate}>

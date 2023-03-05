@@ -1,11 +1,160 @@
 import React from "react";
 import HeaderTitle from "../../components/HeaderTitle";
-import { Button, DatePicker, Form, Input, Select, Row, Col } from "antd";
+import { Button, DatePicker, Form, Input, Select, Row, Col, Checkbox } from "antd";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 function ScheduleList() {
   const [form] = Form.useForm();
+  const navigate = useNavigate();
+
+  const columns = [
+    {
+      title: "行",
+      dataIndex: "index",
+      width: "5%",
+      key: "index",
+      render: (text) => <a>{text}</a>,
+      align: 'center'
+    },
+    {
+      title: "伝票番号",
+      dataIndex: "spliNum",
+      key: "spliNum",
+      width: "8%",
+      align: 'center'
+    },
+    {
+      title: "起票部門",
+      dataIndex: "ticket",
+      key: "ticket",
+      width: "10%",
+      align: 'center'
+    },
+    {
+      title: "伝票日付",
+      dataIndex: "splitDate",
+      key: "splitDate",
+      width: "10%",
+      align: 'center'
+    },
+    {
+      title: "申請日",
+      dataIndex: "filingDate",
+      key: "filingDate",
+      width: "10%",
+      align: 'center'
+    },
+    {
+      title: "出納方法",
+      dataIndex: "casherMethod",
+      key: "casherMethod",
+      width: "10%",
+      align: 'center'
+    },
+    {
+      title: "出張目的",
+      dataIndex: "trip",
+      key: "trip",
+      width: "30%",
+      align: 'center'
+    },
+    {
+      title: "金額",
+      dataIndex: "money",
+      key: "money",
+      width: "10%",
+      align: 'center'
+    },
+    {
+      title: "行選択",
+      dataIndex: "lineSelection",
+      key: "lineSelection",
+      render: () => <Checkbox />,
+      width: "10%",
+      align: 'center'
+    },
+  ];
+  const data = [
+    {
+      index: "1",
+      spliNum: "3",
+      ticket: "234",
+      splitDate: "2023-07-09",
+      filingDate: "2023-07-09",
+      casherMethod: "Online",
+      trip: "nice",
+      money: "100",
+      lineSelection: "",
+    },
+    {
+      index: "2",
+      spliNum: "3",
+      ticket: "234",
+      splitDate: "2023-07-09",
+      filingDate: "2023-07-09",
+      casherMethod: "Offline",
+      trip: "nice",
+      money: "0",
+      lineSelection: "",
+    },
+    {
+      index: "3",
+      spliNum: "3",
+      ticket: "234",
+      splitDate: "2023-07-09",
+      filingDate: "2023-07-09",
+      casherMethod: "Online",
+      trip: "nice",
+      money: "0",
+      lineSelection: "",
+    },
+    {
+      index: "3",
+      spliNum: "3",
+      ticket: "234",
+      splitDate: "2023-07-09",
+      filingDate: "2023-07-09",
+      casherMethod: "Online",
+      trip: "nice",
+      money: "0",
+      lineSelection: "",
+    },
+    {
+      index: "3",
+      spliNum: "3",
+      ticket: "234",
+      splitDate: "2023-07-09",
+      filingDate: "2023-07-09",
+      casherMethod: "Online",
+      trip: "nice",
+      money: "0",
+      lineSelection: "",
+    },
+    {
+      index: "3",
+      spliNum: "3",
+      ticket: "234",
+      splitDate: "2023-07-09",
+      filingDate: "2023-07-09",
+      casherMethod: "Online",
+      trip: "nice",
+      money: "0",
+      lineSelection: "",
+    },
+    {
+      index: "3",
+      spliNum: "3",
+      ticket: "234",
+      splitDate: "2023-07-09",
+      filingDate: "2023-07-09",
+      casherMethod: "Online",
+      trip: "nice",
+      money: "0",
+      lineSelection: "",
+    },
+  ];
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
@@ -19,7 +168,7 @@ function ScheduleList() {
         <Form
           form={form}
           name="schedule"
-          onFinish={onSubmit()}
+          onFinish={() =>onSubmit()}
           labelCol={{
             span: 4,
           }}
@@ -133,7 +282,9 @@ function ScheduleList() {
                 ]}
               ></Select>
             </Form.Item>
-            <Button className="bg-gray-500 text-white ml-auto sm:px-10 md:mr-10">
+            <Button className="bg-gray-500 text-white ml-auto sm:px-10 md:mr-10"
+              onClick={()=> navigate(`/add-schedule`)}
+            >
               登録
             </Button>
           </Form.Item>
@@ -151,7 +302,7 @@ function ScheduleList() {
           </Row>
         </Form>
       </div>
-      <CustomTable/>
+      <CustomTable columns={columns} dataSource={data}/>
     </div>
   );
 }
