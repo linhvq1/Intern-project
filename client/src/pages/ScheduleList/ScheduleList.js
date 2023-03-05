@@ -13,7 +13,7 @@ function ScheduleList() {
     });
   };
   return (
-    <div className="p-3">
+    <div className="p-3 pb-14 h-full overflow-y-auto">
       <HeaderTitle text={"予定伝票一覧"} />
       <div>
         <Form

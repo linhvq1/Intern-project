@@ -6,8 +6,8 @@ import ScheduleList from './ScheduleList/ScheduleList'
 
 function Home() {
   return (
-    <div>
-        <Navbar />
+    <div className="bg-gray-50 h-screen transition-height duration-75 ease-out">
+        <Navbar className="h-screen flex-initial"/>
         <div className='pb-2 flex-1 h-screen overflow-y-auto'>
             <Routes>
                 <Route path='/' element={<ScheduleList />}/>
