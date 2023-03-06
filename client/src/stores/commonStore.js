@@ -6,6 +6,11 @@ class CommonStore{
     }
 
     isLoading = false
+    isShowRoomModal = false
+
+    setIsShowRoomModal = state =>{
+        this.isShowRoomModal = state
+    }
 
     setLoadingProgress = state =>{
         this.isLoading = state

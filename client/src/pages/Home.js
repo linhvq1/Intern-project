@@ -2,6 +2,7 @@ import React from 'react'
 import { Route, Routes } from 'react-router'
 import Navbar from '../components/layouts/Navbar'
 import AddScheduleInfo from './AddScheduleInfo/AddScheduleInfo'
+import TripDetail from './AddScheduleInfo/TripDetail'
 import ScheduleList from './ScheduleList/ScheduleList'
 
 function Home() {
@@ -12,6 +13,7 @@ function Home() {
             <Routes>
                 <Route path='/' element={<ScheduleList />}/>
                 <Route path='add-schedule' element={<AddScheduleInfo />}/>
+                <Route path='detail-schedule/:parentId' element={<TripDetail />}/>
                 <Route path="*" element={<p className='h-full flex justify-center items-center'>Path not resolved</p>} />
             </Routes>
         </div>

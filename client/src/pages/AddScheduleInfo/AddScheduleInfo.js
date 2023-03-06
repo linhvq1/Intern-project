@@ -5,21 +5,14 @@ import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { useNavigate } from "react-router-dom";
 import {CustomForm} from './style'
+import RoomModal from "./RoomModal";
+import { inject, observer } from "mobx-react";
 
-function AddScheduleInfo() {
+function AddScheduleInfo({commonStore}) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
   const columns =[
-    // {
-    //   title: "交通費",
-    //   dataIndex: "index",
-    //   width: "5%",
-    //   key: "index",
-    //   render: (text) => <a>{text}</a>,
-    //   align: 'center'
-    //   cons
-    // },
     {
       title: '交通費',
       children: [
@@ -109,7 +102,9 @@ function AddScheduleInfo() {
               <Button className="bg-gray-200">
                 削除
               </Button>
-              <Button className="bg-gray-500 text-white">
+              <Button className="bg-gray-500 text-white"
+                onClick={()=> navigate(-1)}
+              >
                 終了
               </Button>
             </div>
@@ -197,7 +192,9 @@ function AddScheduleInfo() {
                     disabled
                   />
             </Form.Item>
-            <Button className="px-0 py-0" icon={<PickIcon />}/>
+            <Button className="px-0 py-0" icon={<PickIcon />}
+              onClick={()=> navigate(`/detail-schedule/${1}`)}
+            />
           </Form.Item>
           <Form.Item label={
             <div>
@@ -217,14 +214,17 @@ function AddScheduleInfo() {
             <Col span={4} className="text-end">
             </Col>
             <Col span={20} className="flex justify-end lg:pr-10">
-              <Button className="bg-gray-500 text-white">明細追加</Button>
+              <Button className="bg-gray-500 text-white"
+                onClick={()=> commonStore.setIsShowRoomModal(true)}
+              >明細追加</Button>
             </Col>
           </Row>
         </CustomForm>
       </div>
-      <CustomTable columns={columns}/>
+      <CustomTable columns={columns} styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"} sumable={true}/>
+      <RoomModal/>
     </div>
   );
 }
 
-export default AddScheduleInfo
+export default inject('commonStore')(observer(AddScheduleInfo))

@@ -302,7 +302,7 @@ function ScheduleList() {
           </Row>
         </Form>
       </div>
-      <CustomTable columns={columns} dataSource={data}/>
+      <CustomTable columns={columns} dataSource={data} styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"} sumable={true}/>
     </div>
   );
 }
