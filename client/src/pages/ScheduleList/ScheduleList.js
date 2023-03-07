@@ -21,7 +21,7 @@ function ScheduleList({ userStore }) {
 
   useEffect(() => {
     userStore.getUser().then((res) => {
-      console.log("res", res);
+      // console.log("res", res);
     });
   }, []);
 
@@ -245,10 +245,10 @@ function ScheduleList({ userStore }) {
         dataSource={userStore.users}
         styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"}
         sumable={true}
-        onRow={(record, rowIndex) => {
+        onRow={(record) => {
           return {
-            onClick: (evt) => {
-              console.log("record", evt);
+            onClick: () => {
+              console.log(record);
             },
           };
         }}
