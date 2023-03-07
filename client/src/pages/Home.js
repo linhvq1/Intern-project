@@ -1,11 +1,12 @@
-import React from 'react'
+import { inject, observer } from 'mobx-react'
+import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router'
 import Navbar from '../components/layouts/Navbar'
 import AddScheduleInfo from './AddScheduleInfo/AddScheduleInfo'
 import TripDetail from './AddScheduleInfo/TripDetail'
 import ScheduleList from './ScheduleList/ScheduleList'
 
-function Home() {
+function Home({commonStore, userStore}) {
   return (
     <div className="bg-gray-50 h-screen transition-height duration-75 ease-out">
         <Navbar className="h-screen flex-initial"/>
@@ -21,4 +22,4 @@ function Home() {
   )
 }
 
-export default Home
+export default inject("userStore", "commonStore")(observer(Home));

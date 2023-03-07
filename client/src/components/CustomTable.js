@@ -9,6 +9,8 @@ const StyledTable = styled(Table)`
   }
   .ant-table-thead > tr > td.ant-table-selection-column{
     background: #bbaeae !important;
+    border-bottom: 1px solid black;
+    border-left: 1px solid black !important;
   }
   .ant-table-thead > tr > th:first-child{
     border-left: 1px solid black !important;
@@ -33,13 +35,13 @@ const StyledTable = styled(Table)`
   }
 `
 
-const CustomTable = ({columns, dataSource, styles, sumable, key, onDoubleClick, rowSelection=false} ) => {
+const CustomTable = ({columns, dataSource, styles, sumable, recordKey, onDoubleClick, rowSelection=false} ) => {
   
   return (
     <>
       <StyledTable className={styles} columns={columns} bordered dataSource={dataSource} pagination={false} 
         scroll={{y: 240}}
-        rowKey={(record)=> record[key]}
+        rowKey={(record)=> record[recordKey]}
         rowSelection={rowSelection}
         onRow={onDoubleClick}
       />

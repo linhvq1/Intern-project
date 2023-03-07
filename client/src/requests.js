@@ -49,6 +49,7 @@ const UserRequest = {
   getUser: () => requests.get("/datas"),
   searchDatas: (body) => requests.post("/", body),
   getZooms: () => requests.get("/zooms"),
+  searchRoom: (body) => requests.post('/zooms', body)
 };
 
 export { UserRequest };

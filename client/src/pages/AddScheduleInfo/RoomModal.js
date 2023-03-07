@@ -1,38 +1,23 @@
-import React, { useEffect } from "react";
-import { Modal, Form, Input, Button, Col, Row, Radio } from "antd";
+import React, { useEffect, useState } from "react";
+import { Modal, Form, Input, Button, Col, Row, Radio, message } from "antd";
 import CustomTable from "../../components/CustomTable";
 import { inject, observer } from "mobx-react";
 
-// const data = [
-//   {
-//     room_id: "1234",
-//     room_name: "anannka",
-//   },
-//   {
-//     room_id: "1235",
-//     room_name: "anannkaca",
-//   },
-//   {
-//     room_id: "1236",
-//     room_name: "anannkad",
-//   },
-// ];
 
 function RoomModal({ commonStore }) {
+  const [selectedRowKeys, setSelectedRowKeys] = useState();
+  const [originSelectedRoom, setOriginSelectedRoom] = useState();
+  const [form] = Form.useForm()
+
   useEffect(() => {
-    commonStore.getZooms().then((res) => {
-      console.log("res", res);
-    });
-  }, []);
+    commonStore.getZooms().catch(err => console.log())
+    setOriginSelectedRoom(commonStore.selectedRoom)
+    return () => {
+      setSelectedRowKeys()
+    }
+  }, [commonStore.isShowRoomModal])
+  
   const columns = [
-    {
-      title: "選択",
-      //dataIndex: "select",
-      width: "10%",
-      key: "select",
-      align: "center",
-      render: (record) => <Radio />,
-    },
     {
       title: "部門コード",
       dataIndex: "bumoncd",
@@ -50,6 +35,22 @@ function RoomModal({ commonStore }) {
       align: "center",
     },
   ];
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (selectedRowKeys, selectedRows) => {
+      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+      setSelectedRowKeys(selectedRowKeys);
+      if(selectedRowKeys) commonStore.setSelectedRoom(selectedRows[0])
+    },
+  };
+
+  const onSubmitForm = () =>{
+    form.validateFields().then(values =>{
+      commonStore.searchRoom(values).catch(err => console.log())
+    })
+  }
+
   return (
     <Modal
       closable={false}
@@ -58,6 +59,7 @@ function RoomModal({ commonStore }) {
       footer={false}
     >
       <Form
+      form={form}
         labelCol={{
           span: 4,
         }}
@@ -68,14 +70,14 @@ function RoomModal({ commonStore }) {
           maxWidth: "100%",
         }}
       >
-        <Form.Item label="部門コード" name="room_id">
+        <Form.Item label="部門コード" name="bumoncd">
           <Input
             style={{
               width: 150,
             }}
           />
         </Form.Item>
-        <Form.Item label="部門名" name="room_name">
+        <Form.Item label="部門名" name="bumonnm">
           <Input
             style={{
               width: 150,
@@ -85,7 +87,9 @@ function RoomModal({ commonStore }) {
         <Row>
           <Col span={4}></Col>
           <Col span={20}>
-            <Button className="bg-gray-500 text-white">検索</Button>
+            <Button className="bg-gray-500 text-white"
+              onClick={() => onSubmitForm()}
+            >検索</Button>
           </Col>
         </Row>
       </Form>
@@ -94,13 +98,29 @@ function RoomModal({ commonStore }) {
         styles={"mt-4"}
         sumable={false}
         dataSource={commonStore.zooms}
-        key={"room_id"}
+        recordKey={"bumoncd"}
+        rowSelection={{
+          type: "radio",
+          ...rowSelection,
+        }}
       />
       <div className="flex gap-3 mt-4 pl-10">
-        <Button className="bg-gray-500 text-white px-5">選択</Button>
+        <Button className="bg-gray-500 text-white px-5"
+          onClick={()=> {
+            if(selectedRowKeys) {
+              commonStore.setIsShowRoomModal(false)
+              form.resetFields()
+            }
+            else message.error("You have to select a room!")
+          }}
+        >選択</Button>
         <Button
           className="bg-gray-500 text-white px-5"
-          onClick={() => commonStore.setIsShowRoomModal(false)}
+          onClick={() => {
+            commonStore.setIsShowRoomModal(false)
+            commonStore.setSelectedRoom(originSelectedRoom)
+            form.resetFields()}
+          }
         >
           戻る
         </Button>

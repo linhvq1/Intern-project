@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import HeaderTitle from "../../components/HeaderTitle";
 import {
   Button,
@@ -8,7 +8,7 @@ import {
   Select,
   Row,
   Col,
-  Checkbox,
+  Checkbox
 } from "antd";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
@@ -16,10 +16,21 @@ import { useNavigate } from "react-router-dom";
 import { CustomForm } from "./style";
 import RoomModal from "./RoomModal";
 import { inject, observer } from "mobx-react";
+import { toJS, values } from "mobx";
 
 function AddScheduleInfo({ commonStore }) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if(commonStore.selectedRoom){
+      let {bumoncd, bumonnm} = commonStore.selectedRoom
+      form.setFieldsValue({
+        bumoncd, bumonnm
+      })
+    }
+  }, [commonStore.selectedRoom])
+  
 
   const columns = [
     {
@@ -77,6 +88,23 @@ function AddScheduleInfo({ commonStore }) {
       console.log("response", response);
     });
   };
+
+  const handleOnChangeRoomId = (value) =>{
+    if(!value) {
+      form.setFieldsValue({bumonnm: ''})
+      return
+    }
+    commonStore.searchRoom({bumoncd: value}).then(res =>{ 
+        if(res?.length > 0) {
+          let {bumoncd, bumonnm} = res[0]
+          form.setFieldsValue({
+            bumonnm
+          })
+        }else form.setFieldsValue({bumonnm: ''})
+      }
+    )
+  }
+
   return (
     <div className="p-3 pb-14 h-full overflow-y-auto">
       <HeaderTitle text={"予定伝票入力"} />
@@ -105,7 +133,7 @@ function AddScheduleInfo({ commonStore }) {
               />
             </Form.Item>
             <div className="flex gap-3 text-white ml-auto lg:pr-10">
-              <Button className="bg-gray-500 text-white">登録</Button>
+              <Button htmlType="submit" className="bg-gray-500 text-white">登録</Button>
               <Button className="bg-gray-200">削除</Button>
               <Button
                 className="bg-gray-500 text-white"
@@ -191,14 +219,16 @@ function AddScheduleInfo({ commonStore }) {
             />
           </Form.Item>
           <Form.Item label="起票部門">
-            <Form.Item name={"id_room"} className="mb-0 mr-3">
+            <Form.Item name="bumoncd" className="mb-0 mr-3">
               <Input
                 style={{
                   width: 100,
                 }}
+                onChange={(e)=>handleOnChangeRoomId(e.target.value)}
+                
               />
             </Form.Item>
-            <Form.Item name={"info_room"} className="mb-0 mr-3">
+            <Form.Item name="bumonnm" className="mb-0 mr-3">
               <Input
                 style={{
                   width: 180,
