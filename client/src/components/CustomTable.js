@@ -33,7 +33,7 @@ const StyledTable = styled(Table)`
   }
 `
 
-const CustomTable = ({columns, dataSource, styles, sumable, key, rowSelection=false}) => {
+const CustomTable = ({columns, dataSource, styles, sumable, key, onDoubleClick, rowSelection=false} ) => {
   
   return (
     <>
@@ -41,6 +41,7 @@ const CustomTable = ({columns, dataSource, styles, sumable, key, rowSelection=fa
         scroll={{y: 240}}
         rowKey={(record)=> record[key]}
         rowSelection={rowSelection}
+        onRow={onDoubleClick}
       />
       {sumable && <div className="flex gap-2 items-center justify-end pr-44 mt-4">
         <span className="font-bold">交通費計</span>
