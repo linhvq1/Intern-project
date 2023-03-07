@@ -1,20 +1,29 @@
 import React from "react";
 import HeaderTitle from "../../components/HeaderTitle";
-import { Button, DatePicker, Form, Input, Select, Row, Col, Checkbox } from "antd";
+import {
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  Select,
+  Row,
+  Col,
+  Checkbox,
+} from "antd";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { useNavigate } from "react-router-dom";
-import {CustomForm} from './style'
+import { CustomForm } from "./style";
 import RoomModal from "./RoomModal";
 import { inject, observer } from "mobx-react";
 
-function AddScheduleInfo({commonStore}) {
+function AddScheduleInfo({ commonStore }) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  const columns =[
+  const columns = [
     {
-      title: '交通費',
+      title: "交通費",
       children: [
         {
           title: "行",
@@ -22,46 +31,46 @@ function AddScheduleInfo({commonStore}) {
           width: "3%",
           key: "index",
           render: (text) => <a>{text}</a>,
-          align: 'center'
+          align: "center",
         },
         {
           title: "年月日",
           dataIndex: "spliNum",
           key: "spliNum",
           width: "8%",
-          align: 'center'
+          align: "center",
         },
         {
           title: "出発地",
           dataIndex: "ticket",
           key: "ticket",
           width: "10%",
-          align: 'center'
+          align: "center",
         },
         {
           title: "目的地",
           dataIndex: "splitDate",
           key: "splitDate",
           width: "10%",
-          align: 'center'
+          align: "center",
         },
         {
           title: "経路",
           dataIndex: "filingDate",
           key: "filingDate",
           width: "20%",
-          align: 'center'
+          align: "center",
         },
         {
           title: "金額",
           dataIndex: "casherMethod",
           key: "casherMethod",
           width: "5%",
-          align: 'center'
+          align: "center",
         },
-      ]
+      ],
     },
-  ]
+  ];
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
@@ -75,7 +84,7 @@ function AddScheduleInfo({commonStore}) {
         <CustomForm
           form={form}
           name="create_schedule"
-          onFinish={() =>onSubmit()}
+          onFinish={() => onSubmit()}
           labelCol={{
             span: 4,
           }}
@@ -89,41 +98,42 @@ function AddScheduleInfo({commonStore}) {
           <Form.Item label="伝票番号">
             <Form.Item name={"slide_number"} className="mb-0">
               <Input
-                  style={{
-                    width: 150,
-                  }}
-                  disabled
-                />
+                style={{
+                  width: 150,
+                }}
+                disabled
+              />
             </Form.Item>
             <div className="flex gap-3 text-white ml-auto lg:pr-10">
-              <Button className="bg-gray-500 text-white">
-                登録
-              </Button>
-              <Button className="bg-gray-200">
-                削除
-              </Button>
-              <Button className="bg-gray-500 text-white"
-                onClick={()=> navigate(-1)}
+              <Button className="bg-gray-500 text-white">登録</Button>
+              <Button className="bg-gray-200">削除</Button>
+              <Button
+                className="bg-gray-500 text-white"
+                onClick={() => navigate(-1)}
               >
                 終了
               </Button>
             </div>
           </Form.Item>
           <Form.Item label="伝票日付">
-            <Row style={{width: '100%'}}>
+            <Row style={{ width: "100%" }}>
               <Col sm={24} md={8}>
                 <Form.Item name={"slide_date"} className="mb-0">
                   <Input
-                      style={{
-                        width: 150,
-                      }}
-                      disabled
-                    />
+                    style={{
+                      width: 150,
+                    }}
+                    disabled
+                  />
                 </Form.Item>
               </Col>
               <Col sm={24} md={16}>
                 <div className="flex justify-end gap-20 text-white lg:pr-10">
-                  <Form.Item label="出納方法" name={"payMethod"} className="mb-0">
+                  <Form.Item
+                    label="出納方法"
+                    name={"payMethod"}
+                    className="mb-0"
+                  >
                     <Select
                       style={{
                         width: 150,
@@ -138,7 +148,11 @@ function AddScheduleInfo({commonStore}) {
                       ]}
                     ></Select>
                   </Form.Item>
-                  <Form.Item label='支払予定日' name={"expired_date"} className="mb-0">
+                  <Form.Item
+                    label="支払予定日"
+                    name={"expired_date"}
+                    className="mb-0"
+                  >
                     <DatePicker
                       style={{
                         width: 150,
@@ -168,7 +182,7 @@ function AddScheduleInfo({commonStore}) {
               ]}
             ></Select>
           </Form.Item>
-          <Form.Item label='申請日' name={"register_date"}>
+          <Form.Item label="申請日" name={"register_date"}>
             <DatePicker
               style={{
                 width: 150,
@@ -176,55 +190,65 @@ function AddScheduleInfo({commonStore}) {
               suffixIcon={<PickIcon />}
             />
           </Form.Item>
-          <Form.Item label='起票部門'>
+          <Form.Item label="起票部門">
             <Form.Item name={"id_room"} className="mb-0 mr-3">
-                <Input
-                    style={{
-                      width: 100,
-                    }}
-                  />
+              <Input
+                style={{
+                  width: 100,
+                }}
+              />
             </Form.Item>
             <Form.Item name={"info_room"} className="mb-0 mr-3">
-                <Input
-                    style={{
-                      width: 180,
-                    }}
-                    disabled
-                  />
+              <Input
+                style={{
+                  width: 180,
+                }}
+                disabled
+              />
             </Form.Item>
-            <Button className="px-0 py-0" icon={<PickIcon />}
-              onClick={()=> navigate(`/detail-schedule/${1}`)}
+            <Button
+              className="px-0 py-0"
+              icon={<PickIcon />}
+              onClick={() => commonStore.setIsShowRoomModal(true)}
             />
           </Form.Item>
-          <Form.Item label={
-            <div>
-              出張目的
-              <p>（備考）</p>
-            </div>
-            } 
-            className='trip-purpose-form-item'
-            name={"trip_purpose"}>
-              <Input
-                  style={{
-                    width: 150,
-                  }}
-                />
+          <Form.Item
+            label={
+              <div>
+                出張目的
+                <p>（備考）</p>
+              </div>
+            }
+            className="trip-purpose-form-item"
+            name={"trip_purpose"}
+          >
+            <Input
+              style={{
+                width: 150,
+              }}
+            />
           </Form.Item>
           <Row>
-            <Col span={4} className="text-end">
-            </Col>
+            <Col span={4} className="text-end"></Col>
             <Col span={20} className="flex justify-end lg:pr-10">
-              <Button className="bg-gray-500 text-white"
-                onClick={()=> commonStore.setIsShowRoomModal(true)}
-              >明細追加</Button>
+              <Button
+                className="bg-gray-500 text-white"
+                onClick={() => navigate(`/detail-schedule/${1}`)}
+              >
+                明細追加
+              </Button>
             </Col>
           </Row>
         </CustomForm>
       </div>
-      <CustomTable columns={columns} styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"} sumable={true}/>
-      <RoomModal/>
+      <CustomTable
+        columns={columns}
+        styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"}
+        sumable={true}
+      />
+      <RoomModal />
     </div>
   );
 }
 
-export default inject('commonStore')(observer(AddScheduleInfo))
+export default inject("commonStore")(observer(AddScheduleInfo));
