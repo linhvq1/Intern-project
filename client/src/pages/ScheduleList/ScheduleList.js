@@ -1,13 +1,29 @@
-import React from "react";
+import React, { useEffect } from "react";
 import HeaderTitle from "../../components/HeaderTitle";
-import { Button, DatePicker, Form, Input, Select, Row, Col, Checkbox } from "antd";
+import { inject, observer } from "mobx-react";
+import {
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  Select,
+  Row,
+  Col,
+  Checkbox,
+} from "antd";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-function ScheduleList() {
+function ScheduleList({ userStore }) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    userStore.getUser().then((res) => {
+      console.log("res", res);
+    });
+  }, []);
 
   const columns = [
     {
@@ -15,57 +31,57 @@ function ScheduleList() {
       dataIndex: "index",
       width: "5%",
       key: "index",
-      render: (text) => <a>{text}</a>,
-      align: 'center'
+      render: (_, record, index) => <a>{index + 1}</a>,
+      align: "center",
     },
     {
       title: "伝票番号",
-      dataIndex: "spliNum",
-      key: "spliNum",
+      dataIndex: "denpyono",
+      key: "denpyono",
       width: "8%",
-      align: 'center'
+      align: "center",
     },
     {
       title: "起票部門",
-      dataIndex: "ticket",
-      key: "ticket",
+      dataIndex: "bumonnm",
+      key: "bumonnm",
       width: "10%",
-      align: 'center'
+      align: "center",
     },
     {
       title: "伝票日付",
-      dataIndex: "splitDate",
-      key: "splitDate",
+      dataIndex: "denpyodt",
+      key: "denpyodt",
       width: "10%",
-      align: 'center'
+      align: "center",
     },
     {
       title: "申請日",
-      dataIndex: "filingDate",
-      key: "filingDate",
+      dataIndex: "uketukedt",
+      key: "uketukedt",
       width: "10%",
-      align: 'center'
+      align: "center",
     },
     {
       title: "出納方法",
-      dataIndex: "casherMethod",
-      key: "casherMethod",
+      dataIndex: "suitokb",
+      key: "suitokb",
       width: "10%",
-      align: 'center'
+      align: "center",
     },
     {
       title: "出張目的",
-      dataIndex: "trip",
-      key: "trip",
+      dataIndex: "biko",
+      key: "biko",
       width: "30%",
-      align: 'center'
+      align: "center",
     },
     {
       title: "金額",
-      dataIndex: "money",
-      key: "money",
+      dataIndex: "kingaku",
+      key: "kingaku",
       width: "10%",
-      align: 'center'
+      align: "center",
     },
     {
       title: "行選択",
@@ -73,86 +89,7 @@ function ScheduleList() {
       key: "lineSelection",
       render: () => <Checkbox />,
       width: "10%",
-      align: 'center'
-    },
-  ];
-  const data = [
-    {
-      index: "1",
-      spliNum: "3",
-      ticket: "234",
-      splitDate: "2023-07-09",
-      filingDate: "2023-07-09",
-      casherMethod: "Online",
-      trip: "nice",
-      money: "100",
-      lineSelection: "",
-    },
-    {
-      index: "2",
-      spliNum: "3",
-      ticket: "234",
-      splitDate: "2023-07-09",
-      filingDate: "2023-07-09",
-      casherMethod: "Offline",
-      trip: "nice",
-      money: "0",
-      lineSelection: "",
-    },
-    {
-      index: "3",
-      spliNum: "3",
-      ticket: "234",
-      splitDate: "2023-07-09",
-      filingDate: "2023-07-09",
-      casherMethod: "Online",
-      trip: "nice",
-      money: "0",
-      lineSelection: "",
-    },
-    {
-      index: "3",
-      spliNum: "3",
-      ticket: "234",
-      splitDate: "2023-07-09",
-      filingDate: "2023-07-09",
-      casherMethod: "Online",
-      trip: "nice",
-      money: "0",
-      lineSelection: "",
-    },
-    {
-      index: "3",
-      spliNum: "3",
-      ticket: "234",
-      splitDate: "2023-07-09",
-      filingDate: "2023-07-09",
-      casherMethod: "Online",
-      trip: "nice",
-      money: "0",
-      lineSelection: "",
-    },
-    {
-      index: "3",
-      spliNum: "3",
-      ticket: "234",
-      splitDate: "2023-07-09",
-      filingDate: "2023-07-09",
-      casherMethod: "Online",
-      trip: "nice",
-      money: "0",
-      lineSelection: "",
-    },
-    {
-      index: "3",
-      spliNum: "3",
-      ticket: "234",
-      splitDate: "2023-07-09",
-      filingDate: "2023-07-09",
-      casherMethod: "Online",
-      trip: "nice",
-      money: "0",
-      lineSelection: "",
+      align: "center",
     },
   ];
 
@@ -168,7 +105,7 @@ function ScheduleList() {
         <Form
           form={form}
           name="schedule"
-          onFinish={() =>onSubmit()}
+          onFinish={() => onSubmit()}
           labelCol={{
             span: 4,
           }}
@@ -282,8 +219,9 @@ function ScheduleList() {
                 ]}
               ></Select>
             </Form.Item>
-            <Button className="bg-gray-500 text-white ml-auto sm:px-10 md:mr-10"
-              onClick={()=> navigate(`/add-schedule`)}
+            <Button
+              className="bg-gray-500 text-white ml-auto sm:px-10 md:mr-10"
+              onClick={() => navigate(`/add-schedule`)}
             >
               登録
             </Button>
@@ -302,9 +240,21 @@ function ScheduleList() {
           </Row>
         </Form>
       </div>
-      <CustomTable columns={columns} dataSource={data} styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"} sumable={true}/>
+      <CustomTable
+        columns={columns}
+        dataSource={userStore.users}
+        styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"}
+        sumable={true}
+        onRow={(record, rowIndex) => {
+          return {
+            onClick: (evt) => {
+              console.log("record", evt);
+            },
+          };
+        }}
+      />
     </div>
   );
 }
 
-export default ScheduleList;
+export default inject("userStore")(observer(ScheduleList));
