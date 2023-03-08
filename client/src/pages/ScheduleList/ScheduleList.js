@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import HeaderTitle from "../../components/HeaderTitle";
 import { inject, observer } from "mobx-react";
 import moment from "moment";
+import vi from "antd/lib/date-picker/locale/vi_VN";
 import {
   Button,
   DatePicker,
