@@ -102,7 +102,6 @@ function ScheduleList({ scheduleStore }) {
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
-      console.log(response);
       scheduleStore
         .searchScheduleList(response)
         .then(() => message.success("Done!"))
@@ -156,15 +155,17 @@ function ScheduleList({ scheduleStore }) {
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     const isInteger = /^[0-9]+$/;
+                    if (!value && getFieldValue("denpyono_end"))
+                      return Promise.reject(new Error("Please input ID"));
                     if (
-                      (!value ||
-                        !getFieldValue("denpyono_end") ||
-                        value < getFieldValue("denpyono_end")) &&
-                      isInteger.test(`${value}`)
+                      !value ||
+                      !getFieldValue("denpyono_end") ||
+                      (value < getFieldValue("denpyono_end") &&
+                        isInteger.test(`${value}`))
                     ) {
-                      console.log("1");
                       return Promise.resolve();
                     }
+
                     if (!isInteger.test(`${value}`) && value)
                       return Promise.reject(new Error("It's not an ID"));
                     if (value >= getFieldValue("denpyono_end") && value)
@@ -190,17 +191,17 @@ function ScheduleList({ scheduleStore }) {
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     const isInteger = /^[0-9]+$/;
-                    console.log("value", value);
-                    console.log("value", typeof value);
+                    if (!value && getFieldValue("denpyono_start"))
+                      return Promise.reject(new Error("Please input ID"));
                     if (
-                      (!value ||
-                        !getFieldValue("denpyono_start") ||
-                        value > getFieldValue("denpyono_start")) &&
-                      isInteger.test(`${value}`)
+                      !value ||
+                      !getFieldValue("denpyono_start") ||
+                      (value > getFieldValue("denpyono_start") &&
+                        isInteger.test(`${value}`))
                     ) {
-                      console.log("2");
                       return Promise.resolve();
                     }
+
                     if (!isInteger.test(`${value}`) && value)
                       return Promise.reject(new Error("It's not an ID"));
                     if (value <= getFieldValue("denpyono_start") && value)
@@ -226,6 +227,8 @@ function ScheduleList({ scheduleStore }) {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
+                    if (!value && getFieldValue("denpyodt_end"))
+                      return Promise.reject(new Error("Please select date"));
                     if (
                       !value ||
                       !getFieldValue("denpyodt_end") ||
@@ -233,13 +236,13 @@ function ScheduleList({ scheduleStore }) {
                         formatDate(getFieldValue("denpyodt_end"))
                       )
                     ) {
-                      console.log("3");
                       return Promise.resolve();
                     }
                     if (
                       !moment(formatDate(value)).isBefore(
                         formatDate(getFieldValue("denpyodt_end"))
-                      )
+                      ) &&
+                      value
                     )
                       return Promise.reject(
                         new Error(
@@ -264,6 +267,8 @@ function ScheduleList({ scheduleStore }) {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
+                    if (!value && getFieldValue("denpyodt_start"))
+                      return Promise.reject(new Error("Please select date"));
                     if (
                       !value ||
                       !getFieldValue("denpyodt_start") ||
@@ -271,13 +276,13 @@ function ScheduleList({ scheduleStore }) {
                         formatDate(getFieldValue("denpyodt_start"))
                       )
                     ) {
-                      console.log("4");
                       return Promise.resolve();
                     }
                     if (
                       !moment(formatDate(value)).isAfter(
                         formatDate(getFieldValue("denpyodt_start"))
-                      )
+                      ) &&
+                      value
                     )
                       return Promise.reject(
                         new Error(
@@ -303,6 +308,8 @@ function ScheduleList({ scheduleStore }) {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
+                    if (!value && getFieldValue("uketukedt_end"))
+                      return Promise.reject(new Error("Please select date"));
                     if (
                       !value ||
                       !getFieldValue("uketukedt_end") ||
@@ -310,13 +317,13 @@ function ScheduleList({ scheduleStore }) {
                         formatDate(getFieldValue("uketukedt_end"))
                       )
                     ) {
-                      console.log("5");
                       return Promise.resolve();
                     }
                     if (
                       !moment(formatDate(value)).isBefore(
                         formatDate(getFieldValue("uketukedt_end"))
-                      )
+                      ) &&
+                      value
                     )
                       return Promise.reject(
                         new Error(
@@ -342,6 +349,8 @@ function ScheduleList({ scheduleStore }) {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
+                    if (!value && getFieldValue("uketukedt_start"))
+                      return Promise.reject(new Error("Please select date"));
                     if (
                       !value ||
                       !getFieldValue("uketukedt_start") ||
@@ -349,13 +358,13 @@ function ScheduleList({ scheduleStore }) {
                         formatDate(getFieldValue("uketukedt_start"))
                       )
                     ) {
-                      console.log("6");
                       return Promise.resolve();
                     }
                     if (
                       !moment(formatDate(value)).isAfter(
                         formatDate(getFieldValue("uketukedt_start"))
-                      )
+                      ) &&
+                      value
                     )
                       return Promise.reject(
                         new Error(
