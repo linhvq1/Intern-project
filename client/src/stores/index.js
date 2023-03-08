@@ -1,10 +1,10 @@
 import commonStore from "./commonStore";
-import userStore from "./userStore";
+import scheduleStore from "./scheduleStore";
 
 class RootStore {
   constructor() {
     this.commonStore = new commonStore(this);
-    this.userStore = new userStore(this);
+    this.scheduleStore = new scheduleStore(this);
   }
 }
 

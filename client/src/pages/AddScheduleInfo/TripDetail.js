@@ -30,7 +30,14 @@ function TripDetail() {
               maxWidth: "100%",
             }}
         >
-            <Form.Item label='年月日' name={"date"}>
+            <Form.Item label='年月日' name={"date"}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please input 年月日!',
+                },
+              ]}
+            >
                 <DatePicker
                     style={{
                     width: 150,
@@ -38,28 +45,56 @@ function TripDetail() {
                     suffixIcon={<PickIcon />}
                 />
             </Form.Item>
-            <Form.Item label='出発地' name={"start"}>
+            <Form.Item label='出発地' name={"start"}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please input 出発地!',
+                },
+              ]}
+            >
               <Input
                   style={{
                     width: 150,
                   }}
                 />
             </Form.Item>
-            <Form.Item label='目的地' name={"end"}>
+            <Form.Item label='目的地' name={"end"}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please input 目的地!',
+                },
+              ]}
+            >
               <Input
                   style={{
                     width: 150,
                   }}
                 />
             </Form.Item>
-            <Form.Item label='経路' name={"road"}>
+            <Form.Item label='経路' name={"road"}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please input 経路!',
+                },
+              ]}
+            >
               <Input
                   style={{
                     width: 180,
                   }}
                 />
             </Form.Item>
-            <Form.Item label='金額' name={"fee"}>
+            <Form.Item label='金額' name={"fee"}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please input 金額!',
+                },
+              ]}
+            >
               <Input
                   style={{
                     width: 150,

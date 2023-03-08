@@ -8,11 +8,11 @@ class CommonStore {
 
   isLoading = false;
   isShowRoomModal = false;
-  selectedRoom = {}
+  selectedRoom = {};
 
-  setSelectedRoom = data => {
-    this.selectedRoom = data
-  }
+  setSelectedRoom = (data) => {
+    this.selectedRoom = data;
+  };
 
   setIsShowRoomModal = (state) => {
     this.isShowRoomModal = state;

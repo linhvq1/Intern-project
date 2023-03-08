@@ -1,5 +1,5 @@
 import axios from "axios";
-const apiUrl = process.env.REACT_APP_API_URL ||"http://localhost:4000";
+const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
 const requests = {
   get: (url) => {
@@ -46,10 +46,10 @@ const requests = {
 };
 
 const UserRequest = {
-  getUser: () => requests.get("/datas"),
-  searchDatas: (body) => requests.post("/", body),
+  getScheduleList: () => requests.get("/datas"),
+  searchScheduleList: (body) => requests.post("/searchSchedule", body),
   getZooms: () => requests.get("/zooms"),
-  searchRoom: (body) => requests.post('/zooms', body)
+  searchRoom: (body) => requests.post("/zooms", body),
 };
 
 export { UserRequest };

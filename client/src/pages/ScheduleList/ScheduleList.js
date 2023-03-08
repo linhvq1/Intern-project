@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import HeaderTitle from "../../components/HeaderTitle";
 import { inject, observer } from "mobx-react";
+import moment from "moment";
 import {
   Button,
   DatePicker,
@@ -10,17 +11,19 @@ import {
   Row,
   Col,
   Checkbox,
+  InputNumber,
+  message,
 } from "antd";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-function ScheduleList({ userStore }) {
+function ScheduleList({ scheduleStore }) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
-    userStore.getUser().then((res) => {
+    scheduleStore.getScheduleList().then((res) => {
       // console.log("res", res);
     });
   }, []);
@@ -43,8 +46,8 @@ function ScheduleList({ userStore }) {
     },
     {
       title: "起票部門",
-      dataIndex: "bumonnm",
-      key: "bumonnm",
+      dataIndex: "bumoncd_ykanr",
+      key: "bumoncd_ykanr",
       width: "10%",
       align: "center",
     },
@@ -92,10 +95,17 @@ function ScheduleList({ userStore }) {
       align: "center",
     },
   ];
+  const formatDate = (date) => {
+    return date.format("YYYY-MM-DD HH:mm:ss");
+  };
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
-      console.log("response", response);
+      console.log(response);
+      scheduleStore
+        .searchScheduleList(response)
+        .then(() => message.success("Done!"))
+        .catch((err) => message.error("something went wrong"));
     });
   };
   return (
@@ -105,7 +115,6 @@ function ScheduleList({ userStore }) {
         <Form
           form={form}
           name="schedule"
-          onFinish={() => onSubmit()}
           labelCol={{
             span: 4,
           }}
@@ -116,12 +125,16 @@ function ScheduleList({ userStore }) {
             maxWidth: "100%",
           }}
         >
-          <Form.Item label="年度" name="years">
+          <Form.Item label="年度" name="kaikeind">
             <Select
+              allowClear
               style={{
                 width: 120,
               }}
               options={[
+                {
+                  value: "2023",
+                },
                 {
                   value: "2022",
                 },
@@ -135,16 +148,70 @@ function ScheduleList({ userStore }) {
             ></Select>
           </Form.Item>
           <Form.Item label="伝票番号">
-            <Form.Item name={"s_range"} className="mb-0">
-              <Input
+            <Form.Item
+              name={"denpyono_start"}
+              className="mb-0"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const isInteger = /^[0-9]+$/;
+                    if (
+                      (!value ||
+                        !getFieldValue("denpyono_end") ||
+                        value < getFieldValue("denpyono_end")) &&
+                      isInteger.test(`${value}`)
+                    ) {
+                      console.log("1");
+                      return Promise.resolve();
+                    }
+                    if (!isInteger.test(`${value}`) && value)
+                      return Promise.reject(new Error("It's not an ID"));
+                    if (value >= getFieldValue("denpyono_end") && value)
+                      return Promise.reject(
+                        new Error("The first ID is not larger than second ID")
+                      );
+                  },
+                }),
+              ]}
+            >
+              <InputNumber
+                min={1}
                 style={{
                   width: 120,
                 }}
               />
             </Form.Item>
             <span className="px-2">-</span>
-            <Form.Item name={"e_range"} className="mb-0">
-              <Input
+            <Form.Item
+              name={"denpyono_end"}
+              className="mb-0"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const isInteger = /^[0-9]+$/;
+                    console.log("value", value);
+                    console.log("value", typeof value);
+                    if (
+                      (!value ||
+                        !getFieldValue("denpyono_start") ||
+                        value > getFieldValue("denpyono_start")) &&
+                      isInteger.test(`${value}`)
+                    ) {
+                      console.log("2");
+                      return Promise.resolve();
+                    }
+                    if (!isInteger.test(`${value}`) && value)
+                      return Promise.reject(new Error("It's not an ID"));
+                    if (value <= getFieldValue("denpyono_start") && value)
+                      return Promise.reject(
+                        new Error("The second ID is not lower than first ID")
+                      );
+                  },
+                }),
+              ]}
+            >
+              <InputNumber
+                min={1}
                 style={{
                   width: 120,
                 }}
@@ -152,16 +219,76 @@ function ScheduleList({ userStore }) {
             </Form.Item>
           </Form.Item>
           <Form.Item label="伝票日付">
-            <Form.Item name={"s_rangeDay"} className="mb-0">
+            <Form.Item
+              name={"denpyodt_start"}
+              className="mb-0"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (
+                      !value ||
+                      !getFieldValue("denpyodt_end") ||
+                      moment(formatDate(value)).isBefore(
+                        formatDate(getFieldValue("denpyodt_end"))
+                      )
+                    ) {
+                      console.log("3");
+                      return Promise.resolve();
+                    }
+                    if (
+                      !moment(formatDate(value)).isBefore(
+                        formatDate(getFieldValue("denpyodt_end"))
+                      )
+                    )
+                      return Promise.reject(
+                        new Error(
+                          "The previous day must be smaller than the next day!"
+                        )
+                      );
+                  },
+                }),
+              ]}
+            >
               <DatePicker
+                inputReadOnly
                 style={{
                   width: 120,
                 }}
               />
             </Form.Item>
             <span className="px-2">-</span>
-            <Form.Item name={"e_rangeDay"} className="mb-0">
+            <Form.Item
+              name={"denpyodt_end"}
+              className="mb-0"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (
+                      !value ||
+                      !getFieldValue("denpyodt_start") ||
+                      moment(formatDate(value)).isAfter(
+                        formatDate(getFieldValue("denpyodt_start"))
+                      )
+                    ) {
+                      console.log("4");
+                      return Promise.resolve();
+                    }
+                    if (
+                      !moment(formatDate(value)).isAfter(
+                        formatDate(getFieldValue("denpyodt_start"))
+                      )
+                    )
+                      return Promise.reject(
+                        new Error(
+                          "The next day must be greater than the day before!"
+                        )
+                      );
+                  },
+                }),
+              ]}
+            >
               <DatePicker
+                inputReadOnly
                 style={{
                   width: 120,
                 }}
@@ -169,8 +296,38 @@ function ScheduleList({ userStore }) {
             </Form.Item>
           </Form.Item>
           <Form.Item label="申請日">
-            <Form.Item name={"s_registerDay"} className="mb-0">
+            <Form.Item
+              name={"uketukedt_start"}
+              className="mb-0"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (
+                      !value ||
+                      !getFieldValue("uketukedt_end") ||
+                      moment(formatDate(value)).isBefore(
+                        formatDate(getFieldValue("uketukedt_end"))
+                      )
+                    ) {
+                      console.log("5");
+                      return Promise.resolve();
+                    }
+                    if (
+                      !moment(formatDate(value)).isBefore(
+                        formatDate(getFieldValue("uketukedt_end"))
+                      )
+                    )
+                      return Promise.reject(
+                        new Error(
+                          "The previous day must be smaller than the next day!"
+                        )
+                      );
+                  },
+                }),
+              ]}
+            >
               <DatePicker
+                inputReadOnly
                 style={{
                   width: 120,
                 }}
@@ -178,8 +335,38 @@ function ScheduleList({ userStore }) {
               />
             </Form.Item>
             <span className="px-2">-</span>
-            <Form.Item name={"e_registerDay"} className="mb-0">
+            <Form.Item
+              name={"uketukedt_end"}
+              className="mb-0"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (
+                      !value ||
+                      !getFieldValue("uketukedt_start") ||
+                      moment(formatDate(value)).isAfter(
+                        formatDate(getFieldValue("uketukedt_start"))
+                      )
+                    ) {
+                      console.log("6");
+                      return Promise.resolve();
+                    }
+                    if (
+                      !moment(formatDate(value)).isAfter(
+                        formatDate(getFieldValue("uketukedt_start"))
+                      )
+                    )
+                      return Promise.reject(
+                        new Error(
+                          "The next day must be greater than the day before!"
+                        )
+                      );
+                  },
+                }),
+              ]}
+            >
               <DatePicker
+                inputReadOnly
                 style={{
                   width: 120,
                 }}
@@ -188,7 +375,7 @@ function ScheduleList({ userStore }) {
             </Form.Item>
           </Form.Item>
           <Form.Item label="出納方法">
-            <Form.Item name={"payMethod_1"} className="mb-0">
+            <Form.Item name={"suitokb_1"} className="mb-0">
               <Select
                 style={{
                   width: 120,
@@ -204,7 +391,7 @@ function ScheduleList({ userStore }) {
               ></Select>
             </Form.Item>
             <span className="px-2">-</span>
-            <Form.Item name={"payMethod_2"} className="mb-0">
+            <Form.Item name={"suitokb_2"} className="mb-0">
               <Select
                 style={{
                   width: 120,
@@ -242,7 +429,7 @@ function ScheduleList({ userStore }) {
       </div>
       <CustomTable
         columns={columns}
-        dataSource={userStore.users}
+        dataSource={scheduleStore.schedules}
         styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"}
         sumable={true}
         onRow={(record) => {
@@ -257,4 +444,4 @@ function ScheduleList({ userStore }) {
   );
 }
 
-export default inject("userStore")(observer(ScheduleList));
+export default inject("scheduleStore")(observer(ScheduleList));
