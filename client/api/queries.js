@@ -1,4 +1,5 @@
 const { Pool } = require("pg");
+const moment = require("moment");
 
 const connectionString =
   "postgresql://postgres:postgres@localhost:5432/postgres";
@@ -17,21 +18,21 @@ pool.connect();
 
 const getDatas = (req, res) => {
   pool.query(
-    `SELECT
-        T1.DENPYONO,
-        T3.BUMONCD,
-        T1.DENPYODT,
-        T1.UKETUKEDT,
-        T1.SUITOKB,
-        T1.BIKO,
-        T1.KINGAKU
-    FROM
-        CMN.BUMON T3,
-        CMN.ES_YDENPYO T1
-    WHERE
-	    T1.BUMONCD_YKANR = T3.BUMONCD
-    ORDER BY T1.DENPYONO`,
-
+    // `SELECT
+    //     T1.DENPYONO,
+    //     T3.BUMONCD,
+    //     T1.DENPYODT,
+    //     T1.UKETUKEDT,
+    //     T1.SUITOKB,
+    //     T1.BIKO,
+    //     T1.KINGAKU
+    // FROM
+    //     CMN.BUMON T3,
+    //     CMN.ES_YDENPYO T1
+    // WHERE
+    //   T1.BUMONCD_YKANR = T3.BUMONCD
+    // ORDER BY T1.DENPYONO`,
+    `select * from cmn.es_ydenpyo order by denpyono`,
     (error, results) => {
       if (error) {
         throw error;
@@ -40,36 +41,76 @@ const getDatas = (req, res) => {
     }
   );
 };
-const searchDatas = (req, res) => {
+
+const getVouchers = (req, res) => {
+  const id = parseInt(req.params.id);
+  pool.query(
+    `select * from cmn.es_ydenpyod where denpyono = $1 order by gyono`,
+    [id],
+    (error, results) => {
+      if (error) {
+        throw error;
+      }
+      res.status(200).json(results.rows);
+    }
+  );
+};
+
+const searchSchedule = (req, res) => {
   console.log("request.body", req.body);
-  let SELECT = "WHERE ";
+  const {
+    kaikeind,
+    denpyono_start,
+    denpyono_end,
+    denpyodt_start,
+    denpyodt_end,
+    uketukedt_start,
+    uketukedt_end,
+    suitokb_1,
+    suitokb_2,
+  } = req.body;
   let WHERE = "";
   // let CONDITION = "";
-  if (req.body.years) {
-    WHERE += `T1.UKETUKEDT like `;
+  if (
+    kaikeind &&
+    denpyono_start &&
+    denpyono_end &&
+    denpyodt_start &&
+    denpyodt_end &&
+    uketukedt_start &&
+    uketukedt_end &&
+    suitokb_1 &&
+    suitokb_2
+  ) {
+    WHERE += ` kaikeind = ${kaikeind} and kaikeind = ${kaikeind}`;
+  } else if (kaikeind) {
+    WHERE += ` kaikeind = ${kaikeind}`;
   }
-  // pool.query(
-  //   `SELECT
-  //       T1.DENPYONO,
-  //       T3.BUMONNM,
-  //       T1.DENPYODT,
-  //       T1.UKETUKEDT,
-  //       T1.SUITOKB,
-  //       T1.BIKO,
-  //       T1.KINGAKU
-  //   FROM
-  //       CMN.BUMON T3,
-  //       CMN.ES_YDENPYO T1
-  //   WHERE
-  //     T1.BUMONCD_YKANR = T3.BUMONCD
-  //   ORDER BY T1.DENPYONO`,
-  //   (error, results) => {
-  //     if (error) {
-  //       throw error;
-  //     }
-  //     res.status(200).json(results.rows);
-  //   }
-  // );
+  if (denpyono_start && denpyono_end) {
+    // denyono_start = moment(denyono_start).format("yyyy-mm-dd");
+    // denyono_end = moment(denyono_end).format("yyyy-mm-dd");
+    WHERE += `denpyono between ${denpyono_start} and ${denpyono_end}`;
+  }
+  if (denpyodt_start && denpyodt_end) {
+    console.log(denpyodt_start, denpyodt_end);
+    let start = new Date(denpyodt_start);
+    let end = new Date(denpyodt_end);
+    denpyodt_start = moment(start).utcOffset(420).format("yyyy-mm-dd");
+    denpyodt_end = moment(end).utcOffset(420).format("yyyy-mm-dd");
+    console.log(denpyodt_start, denpyodt_end);
+    WHERE += `denpyodt between ${denpyodt_start} and ${denpyodt_end}`;
+  }
+  pool.query(
+    WHERE
+      ? `select * from cmn.es_ydenpyo where ${WHERE} order by denpyono`
+      : `select * from cmn.es_ydenpyo order by denpyono`,
+    (error, results) => {
+      if (error) {
+        throw error;
+      }
+      res.status(200).json(results.rows);
+    }
+  );
 };
 const getUserById = (request, response) => {
   const id = parseInt(request.params.id);
@@ -170,7 +211,8 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
-  searchDatas,
+  searchSchedule,
   getZooms,
   searchZooms,
+  getVouchers,
 };

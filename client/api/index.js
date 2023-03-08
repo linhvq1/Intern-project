@@ -19,12 +19,14 @@ app.get("/", (request, response) => {
 });
 app.get("/datas", db.getDatas);
 app.get("/zooms", db.getZooms);
+app.get("/datas/:id", db.getVouchers);
 app.post("/zooms", db.searchZooms);
-app.post("/search", db.searchDatas);
+app.post("/searchSchedule", db.searchSchedule);
 // app.get("/users/:id", db.getUserById);
 // app.post("/users", db.createUser);
 // app.put("/users/:id", db.updateUser);
 // app.delete("/users/:id", db.deleteUser);
+
 app.listen(port, () => {
   console.log(`App running on port ${port}.`);
 });
