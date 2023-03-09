@@ -24,8 +24,9 @@ app.post("/zooms", db.searchZooms);
 app.post("/searchSchedule", db.searchSchedule);
 // app.get("/users/:id", db.getUserById);
 // app.post("/users", db.createUser);
-// app.put("/users/:id", db.updateUser);
-// app.delete("/users/:id", db.deleteUser);
+app.put("/updateSchedule/:id", db.updateSchedule);
+app.post("/schedule", db.createSchedule);
+app.delete("/schedule/:id", db.deleteSchedule);
 
 app.listen(port, () => {
   console.log(`App running on port ${port}.`);
