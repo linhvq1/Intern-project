@@ -27,6 +27,36 @@ class scheduleStore {
         .catch((err) => reject());
     });
   };
+
+  updateSchedule = (id, body) => {
+    return new Promise((resolve, reject) => {
+      UserRequest.updateSchedule(id, body)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => reject());
+    });
+  };
+
+  createSchedule = (body) => {
+    return new Promise((resolve, reject) => {
+      UserRequest.createSchedule(body)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => reject());
+    });
+  };
+
+  deleteSchedule = (id) => {
+    return new Promise((resolve, reject) => {
+      UserRequest.deleteSchedule(id)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => reject());
+    });
+  };
 }
 
 export default scheduleStore;

@@ -13,7 +13,8 @@ function Home({ commonStore, scheduleStore }) {
       <div className="pb-2 flex-1 h-screen overflow-y-auto">
         <Routes>
           <Route path="/" element={<ScheduleList />} />
-          <Route path="add-schedule" element={<AddScheduleInfo />} />
+          <Route path="add-schedule/:id" element={<AddScheduleInfo />} />
+          <Route path="add-schedule/" element={<AddScheduleInfo />} />
           <Route path="detail-schedule/:parentId" element={<TripDetail />} />
           <Route
             path="*"
