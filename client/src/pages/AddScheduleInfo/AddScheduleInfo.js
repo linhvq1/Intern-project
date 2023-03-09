@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import HeaderTitle from "../../components/HeaderTitle";
 import {
   Button,
@@ -8,29 +8,64 @@ import {
   Select,
   Row,
   Col,
-  Checkbox
+  Checkbox,
+  message,
+  Modal,
+  Result,
+  Popconfirm,
 } from "antd";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { CustomForm } from "./style";
 import RoomModal from "./RoomModal";
 import { inject, observer } from "mobx-react";
-import { toJS, values } from "mobx";
+import { toJS } from "mobx";
+import moment from "moment";
+import vi from "antd/lib/date-picker/locale/vi_VN";
 
-function AddScheduleInfo({ commonStore }) {
+import SuccessImage from "../../assets/pngs/payment-successful.webp";
+
+function AddScheduleInfo({ commonStore, scheduleStore }) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [schedule, setschedule] = useState({});
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isOpenEndModal, setIsOpenEndModal] = useState({ open: false });
+  const [resMessage, setResMessage] = useState("");
 
   useEffect(() => {
-    if(commonStore.selectedRoom){
-      let {bumoncd, bumonnm} = commonStore.selectedRoom
-      form.setFieldsValue({
-        bumoncd, bumonnm
-      })
+    if (id) {
+      setIsEditMode(true);
+      scheduleStore
+        .searchScheduleList({ denpyono: id })
+        .then((res) => {
+          if (res?.length) {
+            form.setFieldsValue({
+              ...res[0],
+              denpyodt: moment(res[0]?.denpyodt).format("DD-MM-YYYY"),
+              shiharaidt: moment(res[0]?.shiharaidt),
+              uketukedt: moment(res[0]?.uketukedt),
+            });
+            handleOnChangeRoomId(res[0]?.bumoncd_ykanr);
+          }
+        })
+        .catch((err) => {
+          message.error("something went wrong");
+        });
     }
-  }, [commonStore.selectedRoom])
-  
+  }, []);
+
+  useEffect(() => {
+    if (commonStore.selectedRoom) {
+      let { bumoncd, bumonnm } = commonStore.selectedRoom;
+      form.setFieldsValue({
+        bumoncd_ykanr: bumoncd,
+        bumonnm,
+      });
+    }
+  }, [commonStore.selectedRoom]);
 
   const columns = [
     {
@@ -85,26 +120,52 @@ function AddScheduleInfo({ commonStore }) {
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
-      console.log("response", response);
+      if (isEditMode) {
+        scheduleStore
+          .updateSchedule(id, response)
+          .then((res) => {
+            setIsOpenEndModal({ open: true, mode: 1 });
+            setResMessage(res);
+          })
+          .catch((err) => message.error("Fail to update!"));
+      } else
+        scheduleStore
+          .createSchedule(response)
+          .then((res) => {
+            setIsOpenEndModal({ open: true, mode: 0 });
+            setResMessage(res);
+          })
+          .catch((err) => message.error("Fail to create!"));
     });
   };
 
-  const handleOnChangeRoomId = (value) =>{
-    if(!value) {
-      form.setFieldsValue({bumonnm: ''})
-      return
+  const handleOnChangeRoomId = (value) => {
+    if (!value) {
+      form.setFieldsValue({ bumonnm: "" });
+      return;
     }
-    commonStore.searchRoom({bumoncd: value}).then(res =>{ 
-        if(res?.length > 0) {
-          let {bumoncd, bumonnm} = res[0]
-          form.setFieldsValue({
-            bumonnm
-          })
-        }else form.setFieldsValue({bumonnm: ''})
-      }
-    )
-  }
+    commonStore.searchRoom({ bumoncd: value }).then((res) => {
+      if (res?.length > 0) {
+        let { bumonnm } = res[0];
+        form.setFieldsValue({
+          bumonnm,
+        });
+      } else form.setFieldsValue({ bumonnm: "" });
+    });
+  };
+  const formatDate = (date) => {
+    return date?.format("DD-MM-YYYY");
+  };
 
+  const confirm = () => {
+    scheduleStore
+      .deleteSchedule(id)
+      .then((res) => {
+        setIsOpenEndModal({ open: true, mode: 2 });
+        setResMessage(res);
+      })
+      .catch((err) => message.error("Fail to delete!"));
+  };
   return (
     <div className="p-3 pb-14 h-full overflow-y-auto">
       <HeaderTitle text={"予定伝票入力"} />
@@ -124,7 +185,7 @@ function AddScheduleInfo({ commonStore }) {
           }}
         >
           <Form.Item label="伝票番号">
-            <Form.Item name={"slide_number"} className="mb-0">
+            <Form.Item name={"denpyono"} className="mb-0">
               <Input
                 style={{
                   width: 150,
@@ -133,8 +194,29 @@ function AddScheduleInfo({ commonStore }) {
               />
             </Form.Item>
             <div className="flex gap-3 text-white ml-auto lg:pr-10">
-              <Button htmlType="submit" className="bg-gray-500 text-white">登録</Button>
-              <Button className="bg-gray-200">削除</Button>
+              <Button htmlType="submit" className="bg-gray-500 text-white">
+                登録
+              </Button>
+
+              <Popconfirm
+                title="Delete the record"
+                description="Are you sure to delete this record?"
+                okText="Ok"
+                okButtonProps={{
+                  className: `bg-blue-500 text-white`,
+                }}
+                cancelText="Cancel"
+                onConfirm={confirm}
+                disabled={!isEditMode}
+              >
+                <Button
+                  className={
+                    isEditMode ? `bg-gray-500 text-white` : `bg-gray-200`
+                  }
+                >
+                  削除
+                </Button>
+              </Popconfirm>
               <Button
                 className="bg-gray-500 text-white"
                 onClick={() => navigate(-1)}
@@ -146,7 +228,7 @@ function AddScheduleInfo({ commonStore }) {
           <Form.Item label="伝票日付">
             <Row style={{ width: "100%" }}>
               <Col sm={24} md={8}>
-                <Form.Item name={"slide_date"} className="mb-0">
+                <Form.Item name={"denpyodt"} className="mb-0">
                   <Input
                     style={{
                       width: 150,
@@ -159,8 +241,14 @@ function AddScheduleInfo({ commonStore }) {
                 <div className="flex justify-end gap-20 text-white lg:pr-10">
                   <Form.Item
                     label="出納方法"
-                    name={"payMethod"}
+                    name={"suitokb"}
                     className="mb-0"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select",
+                      },
+                    ]}
                   >
                     <Select
                       style={{
@@ -178,10 +266,17 @@ function AddScheduleInfo({ commonStore }) {
                   </Form.Item>
                   <Form.Item
                     label="支払予定日"
-                    name={"expired_date"}
+                    name={"shiharaidt"}
                     className="mb-0"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select",
+                      },
+                    ]}
                   >
                     <DatePicker
+                      format={"DD-MM-YYYY"}
                       style={{
                         width: 150,
                       }}
@@ -192,7 +287,16 @@ function AddScheduleInfo({ commonStore }) {
               </Col>
             </Row>
           </Form.Item>
-          <Form.Item label="年度" name="years">
+          <Form.Item
+            label="年度"
+            name="kaikeind"
+            rules={[
+              {
+                required: true,
+                message: "Please select",
+              },
+            ]}
+          >
             <Select
               style={{
                 width: 150,
@@ -210,8 +314,18 @@ function AddScheduleInfo({ commonStore }) {
               ]}
             ></Select>
           </Form.Item>
-          <Form.Item label="申請日" name={"register_date"}>
+          <Form.Item
+            label="申請日"
+            name={"uketukedt"}
+            rules={[
+              {
+                required: true,
+                message: "Please select",
+              },
+            ]}
+          >
             <DatePicker
+              format={"DD-MM-YYYY"}
               style={{
                 width: 150,
               }}
@@ -219,13 +333,21 @@ function AddScheduleInfo({ commonStore }) {
             />
           </Form.Item>
           <Form.Item label="起票部門">
-            <Form.Item name="bumoncd" className="mb-0 mr-3">
+            <Form.Item
+              name="bumoncd_ykanr"
+              className="mb-0 mr-3"
+              rules={[
+                {
+                  required: true,
+                  message: "Please input",
+                },
+              ]}
+            >
               <Input
                 style={{
                   width: 100,
                 }}
-                onChange={(e)=>handleOnChangeRoomId(e.target.value)}
-                
+                onChange={(e) => handleOnChangeRoomId(e.target.value)}
               />
             </Form.Item>
             <Form.Item name="bumonnm" className="mb-0 mr-3">
@@ -250,7 +372,13 @@ function AddScheduleInfo({ commonStore }) {
               </div>
             }
             className="trip-purpose-form-item"
-            name={"trip_purpose"}
+            name={"biko"}
+            rules={[
+              {
+                required: true,
+                message: "Please input",
+              },
+            ]}
           >
             <Input
               style={{
@@ -277,8 +405,32 @@ function AddScheduleInfo({ commonStore }) {
         sumable={true}
       />
       <RoomModal />
+      <Modal closable={false} open={isOpenEndModal.open} footer={false}>
+        <Result
+          status="success"
+          icon={<img src={SuccessImage} alt="success" />}
+          title={
+            (isOpenEndModal.mode === 1 && "Update succesfully!") ||
+            (isOpenEndModal.mode === 0 && "Create Successfully!") ||
+            (isOpenEndModal.mode === 2 && "Delete succesfully!")
+          }
+          subTitle={resMessage}
+          extra={[
+            <Button
+              className="bg-blue-500 text-white"
+              key="console"
+              onClick={() => navigate(-1)}
+            >
+              Home
+            </Button>,
+          ]}
+        />
+      </Modal>
     </div>
   );
 }
 
-export default inject("commonStore")(observer(AddScheduleInfo));
+export default inject(
+  "commonStore",
+  "scheduleStore"
+)(observer(AddScheduleInfo));

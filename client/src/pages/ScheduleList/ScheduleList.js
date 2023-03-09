@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import HeaderTitle from "../../components/HeaderTitle";
 import { inject, observer } from "mobx-react";
 import moment from "moment";
@@ -22,11 +22,31 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 function ScheduleList({ scheduleStore }) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [sumMoney, setsumMoney] = useState(0);
+  const [loading, setloading] = useState(false);
 
   useEffect(() => {
-    scheduleStore.getScheduleList().then((res) => {
-      // console.log("res", res);
-    });
+    if (scheduleStore.schedules?.length) {
+      let sum = scheduleStore.schedules.reduce(
+        (accumulator, currentValue) =>
+          accumulator + (currentValue?.kingaku || 0),
+        0
+      );
+      setsumMoney(sum);
+    }
+  }, [scheduleStore.schedules]);
+
+  useEffect(() => {
+    setloading(true);
+    scheduleStore
+      .getScheduleList()
+      .then((res) => {
+        setloading(false);
+      })
+      .catch((err) => {
+        setloading(false);
+        message.error("Fail to load data");
+      });
   }, []);
 
   const columns = [
@@ -58,6 +78,9 @@ function ScheduleList({ scheduleStore }) {
       key: "denpyodt",
       width: "10%",
       align: "center",
+      render: (record) => (
+        <span>{moment(record).zone("+0700").format("DD-MM-YYYY")}</span>
+      ),
     },
     {
       title: "申請日",
@@ -65,6 +88,9 @@ function ScheduleList({ scheduleStore }) {
       key: "uketukedt",
       width: "10%",
       align: "center",
+      render: (record) => (
+        <span>{moment(record).zone("+0700").format("DD-MM-YYYY")}</span>
+      ),
     },
     {
       title: "出納方法",
@@ -97,15 +123,22 @@ function ScheduleList({ scheduleStore }) {
     },
   ];
   const formatDate = (date) => {
-    return date.format("YYYY-MM-DD HH:mm:ss");
+    return date.format("DD-MM-YYYY");
   };
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
+      setloading(true);
       scheduleStore
         .searchScheduleList(response)
-        .then(() => message.success("Done!"))
-        .catch((err) => message.error("something went wrong"));
+        .then(() => {
+          setloading(false);
+          message.success("Done!");
+        })
+        .catch((err) => {
+          setloading(false);
+          message.error("something went wrong");
+        });
     });
   };
   return (
@@ -129,7 +162,7 @@ function ScheduleList({ scheduleStore }) {
             <Select
               allowClear
               style={{
-                width: 120,
+                width: 170,
               }}
               options={[
                 {
@@ -157,6 +190,13 @@ function ScheduleList({ scheduleStore }) {
                     const isInteger = /^[0-9]+$/;
                     if (!value && getFieldValue("denpyono_end"))
                       return Promise.reject(new Error("Please input ID"));
+                    if (!value && !getFieldValue("denpyono_end"))
+                      form.setFields([
+                        {
+                          name: "denpyono_end",
+                          errors: [],
+                        },
+                      ]);
                     if (
                       !value ||
                       !getFieldValue("denpyono_end") ||
@@ -179,7 +219,7 @@ function ScheduleList({ scheduleStore }) {
               <InputNumber
                 min={1}
                 style={{
-                  width: 120,
+                  width: 170,
                 }}
               />
             </Form.Item>
@@ -193,6 +233,13 @@ function ScheduleList({ scheduleStore }) {
                     const isInteger = /^[0-9]+$/;
                     if (!value && getFieldValue("denpyono_start"))
                       return Promise.reject(new Error("Please input ID"));
+                    if (!value && !getFieldValue("denpyono_start"))
+                      form.setFields([
+                        {
+                          name: "denpyono_start",
+                          errors: [],
+                        },
+                      ]);
                     if (
                       !value ||
                       !getFieldValue("denpyono_start") ||
@@ -215,7 +262,7 @@ function ScheduleList({ scheduleStore }) {
               <InputNumber
                 min={1}
                 style={{
-                  width: 120,
+                  width: 170,
                 }}
               />
             </Form.Item>
@@ -229,6 +276,13 @@ function ScheduleList({ scheduleStore }) {
                   validator(_, value) {
                     if (!value && getFieldValue("denpyodt_end"))
                       return Promise.reject(new Error("Please select date"));
+                    if (!value && !getFieldValue("denpyodt_end"))
+                      form.setFields([
+                        {
+                          name: "denpyodt_end",
+                          errors: [],
+                        },
+                      ]);
                     if (
                       !value ||
                       !getFieldValue("denpyodt_end") ||
@@ -254,9 +308,10 @@ function ScheduleList({ scheduleStore }) {
               ]}
             >
               <DatePicker
+                format={"DD-MM-YYYY"}
                 inputReadOnly
                 style={{
-                  width: 120,
+                  width: 170,
                 }}
               />
             </Form.Item>
@@ -269,6 +324,13 @@ function ScheduleList({ scheduleStore }) {
                   validator(_, value) {
                     if (!value && getFieldValue("denpyodt_start"))
                       return Promise.reject(new Error("Please select date"));
+                    if (!value && !getFieldValue("denpyodt_start"))
+                      form.setFields([
+                        {
+                          name: "denpyodt_start",
+                          errors: [],
+                        },
+                      ]);
                     if (
                       !value ||
                       !getFieldValue("denpyodt_start") ||
@@ -294,9 +356,10 @@ function ScheduleList({ scheduleStore }) {
               ]}
             >
               <DatePicker
+                format={"DD-MM-YYYY"}
                 inputReadOnly
                 style={{
-                  width: 120,
+                  width: 170,
                 }}
               />
             </Form.Item>
@@ -310,12 +373,32 @@ function ScheduleList({ scheduleStore }) {
                   validator(_, value) {
                     if (!value && getFieldValue("uketukedt_end"))
                       return Promise.reject(new Error("Please select date"));
+                    if (!value && !getFieldValue("uketukedt_end"))
+                      form.setFields([
+                        {
+                          name: "uketukedt_end",
+                          errors: [],
+                        },
+                      ]);
+                    if (
+                      value &&
+                      getFieldValue("uketukedt_end") &&
+                      moment(formatDate(value)).isSame(
+                        formatDate(getFieldValue("uketukedt_end"))
+                      )
+                    )
+                      return Promise.reject(
+                        new Error("Dates are not allowed to be the same!")
+                      );
                     if (
                       !value ||
                       !getFieldValue("uketukedt_end") ||
-                      moment(formatDate(value)).isBefore(
+                      (moment(formatDate(value)).isBefore(
                         formatDate(getFieldValue("uketukedt_end"))
-                      )
+                      ) &&
+                        !moment(formatDate(value)).isSame(
+                          formatDate(getFieldValue("uketukedt_end"))
+                        ))
                     ) {
                       return Promise.resolve();
                     }
@@ -335,9 +418,10 @@ function ScheduleList({ scheduleStore }) {
               ]}
             >
               <DatePicker
+                format={"DD-MM-YYYY"}
                 inputReadOnly
                 style={{
-                  width: 120,
+                  width: 170,
                 }}
                 suffixIcon={<PickIcon />}
               />
@@ -351,12 +435,32 @@ function ScheduleList({ scheduleStore }) {
                   validator(_, value) {
                     if (!value && getFieldValue("uketukedt_start"))
                       return Promise.reject(new Error("Please select date"));
+                    if (!value && !getFieldValue("uketukedt_start"))
+                      form.setFields([
+                        {
+                          name: "uketukedt_start",
+                          errors: [],
+                        },
+                      ]);
+                    if (
+                      value &&
+                      getFieldValue("uketukedt_start") &&
+                      moment(formatDate(value)).isSame(
+                        formatDate(getFieldValue("uketukedt_start"))
+                      )
+                    )
+                      return Promise.reject(
+                        new Error("Dates are not allowed to be the same!")
+                      );
                     if (
                       !value ||
                       !getFieldValue("uketukedt_start") ||
-                      moment(formatDate(value)).isAfter(
+                      (moment(formatDate(value)).isAfter(
                         formatDate(getFieldValue("uketukedt_start"))
-                      )
+                      ) &&
+                        !moment(formatDate(value)).isSame(
+                          formatDate(getFieldValue("uketukedt_start"))
+                        ))
                     ) {
                       return Promise.resolve();
                     }
@@ -376,9 +480,10 @@ function ScheduleList({ scheduleStore }) {
               ]}
             >
               <DatePicker
+                format={"DD-MM-YYYY"}
                 inputReadOnly
                 style={{
-                  width: 120,
+                  width: 170,
                 }}
                 suffixIcon={<PickIcon />}
               />
@@ -387,8 +492,9 @@ function ScheduleList({ scheduleStore }) {
           <Form.Item label="出納方法">
             <Form.Item name={"suitokb_1"} className="mb-0">
               <Select
+                allowClear
                 style={{
-                  width: 120,
+                  width: 170,
                 }}
                 options={[
                   {
@@ -403,8 +509,9 @@ function ScheduleList({ scheduleStore }) {
             <span className="px-2">-</span>
             <Form.Item name={"suitokb_2"} className="mb-0">
               <Select
+                allowClear
                 style={{
-                  width: 120,
+                  width: 170,
                 }}
                 options={[
                   {
@@ -442,10 +549,13 @@ function ScheduleList({ scheduleStore }) {
         dataSource={scheduleStore.schedules}
         styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"}
         sumable={true}
-        onRow={(record) => {
+        loading={loading}
+        sum={sumMoney}
+        recordKey={"denpyono"}
+        onDoubleClick={(record) => {
           return {
-            onClick: () => {
-              console.log(record);
+            onDoubleClick: () => {
+              navigate(`/add-schedule/${record.denpyono}`);
             },
           };
         }}

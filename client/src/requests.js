@@ -25,19 +25,19 @@ const requests = {
   },
   delete: (url, body = false) => {
     if (body) {
-      return axios.delete({
+      return axios({
         method: "delete",
         url: `${apiUrl}${url}`,
         data: body,
       });
     }
-    return axios.delete({
+    return axios({
       method: "delete",
       url: `${apiUrl}${url}`,
     });
   },
   put: (url, body) => {
-    return axios.put({
+    return axios({
       method: "put",
       url: `${apiUrl}${url}`,
       data: body,
@@ -50,6 +50,9 @@ const UserRequest = {
   searchScheduleList: (body) => requests.post("/searchSchedule", body),
   getZooms: () => requests.get("/zooms"),
   searchRoom: (body) => requests.post("/zooms", body),
+  updateSchedule: (id, body) => requests.put(`/updateSchedule/${id}`, body),
+  createSchedule: (body) => requests.post(`/schedule`, body),
+  deleteSchedule: (id) => requests.delete(`/schedule/${id}`),
 };
 
 export { UserRequest };
