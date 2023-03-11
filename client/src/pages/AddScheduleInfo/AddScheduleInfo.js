@@ -196,7 +196,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
       console.log("response", response);
       if (isEditMode) {
         scheduleStore
-          .updateSchedule(id, { ...response, trips: tripData })
+          .updateSchedule(id, { ...response, trips: tripData, total: sumMoney })
           .then((res) => {
             setIsOpenEndModal({ open: true, mode: 1 });
             setResMessage(res);
@@ -204,7 +204,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
           .catch((err) => message.error("Fail to update!"));
       } else
         scheduleStore
-          .createSchedule({ ...response, trips: tripData })
+          .createSchedule({ ...response, trips: tripData, total: sumMoney })
           .then((res) => {
             setIsOpenEndModal({ open: true, mode: 0 });
             setResMessage(res);

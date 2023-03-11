@@ -51,7 +51,6 @@ const CustomTable = ({
   onDoubleClick,
   rowSelection = false,
 }) => {
-  console.log(document.querySelectorAll(".sum-column"));
   return (
     <>
       <StyledTable
