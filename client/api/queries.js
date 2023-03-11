@@ -68,49 +68,94 @@ const searchSchedule = (req, res) => {
     uketukedt_end,
     suitokb_1,
     suitokb_2,
+    denpyono,
   } = req.body;
-  let WHERE = "";
-  // let CONDITION = "";
+  let WHERE = "",
+    query;
   if (
-    kaikeind &&
-    denpyono_start &&
-    denpyono_end &&
-    denpyodt_start &&
-    denpyodt_end &&
-    uketukedt_start &&
-    uketukedt_end &&
-    suitokb_1 &&
-    suitokb_2
+    !kaikeind &&
+    !denpyono_start &&
+    !denpyono_end &&
+    !denpyodt_start &&
+    !denpyodt_end &&
+    !uketukedt_start &&
+    !uketukedt_end &&
+    !suitokb_1 &&
+    !suitokb_2 &&
+    !denpyono
   ) {
-    WHERE += ` kaikeind = ${kaikeind} and kaikeind = ${kaikeind}`;
-  } else if (kaikeind) {
-    WHERE += ` kaikeind = ${kaikeind}`;
-  }
-  if (denpyono_start && denpyono_end) {
-    // denyono_start = moment(denyono_start).format("yyyy-mm-dd");
-    // denyono_end = moment(denyono_end).format("yyyy-mm-dd");
-    WHERE += `denpyono between ${denpyono_start} and ${denpyono_end}`;
-  }
-  if (denpyodt_start && denpyodt_end) {
-    console.log(denpyodt_start, denpyodt_end);
-    let start = new Date(denpyodt_start);
-    let end = new Date(denpyodt_end);
-    denpyodt_start = moment(start).utcOffset(420).format("yyyy-mm-dd");
-    denpyodt_end = moment(end).utcOffset(420).format("yyyy-mm-dd");
-    console.log(denpyodt_start, denpyodt_end);
-    WHERE += `denpyodt between ${denpyodt_start} and ${denpyodt_end}`;
-  }
-  pool.query(
-    WHERE
-      ? `select * from cmn.es_ydenpyo where ${WHERE} order by denpyono`
-      : `select * from cmn.es_ydenpyo order by denpyono`,
-    (error, results) => {
-      if (error) {
-        throw error;
+    query = `select * from cmn.es_ydenpyo order by denpyono`;
+  } else {
+    if (kaikeind) {
+      if (WHERE == "") {
+        WHERE = `where kaikeind = ${kaikeind} `;
+      } else {
+        WHERE += `and kaikeind = ${kaikeind} `;
       }
-      res.status(200).json(results.rows);
     }
-  );
+    if (denpyono) {
+      if (WHERE == "") {
+        WHERE = `where denpyono = ${denpyono} `;
+      } else {
+        WHERE += `and denpyono = ${denpyono} `;
+      }
+    }
+    if (denpyono_start) {
+      if (WHERE == "") {
+        WHERE = `where denpyono between ${denpyono_start} and ${denpyono_end} `;
+      } else {
+        WHERE += `and denpyono between ${denpyono_start} and ${denpyono_end} `;
+      }
+    }
+    if (denpyodt_start) {
+      if (WHERE == "") {
+        WHERE = `where denpyodt between '${moment(denpyodt_start).format(
+          "YYYY-MM-DD"
+        )}' and '${moment(denpyodt_end).format("YYYY-MM-DD")}' `;
+      } else {
+        WHERE += `and denpyodt between '${moment(denpyodt_start).format(
+          "YYYY-MM-DD"
+        )}' and '${moment(denpyodt_end).format("YYYY-MM-DD")}' `;
+      }
+    }
+    if (uketukedt_start) {
+      if (WHERE == "") {
+        WHERE = `where uketukedt between '${moment(uketukedt_start).format(
+          "YYYY-MM-DD"
+        )}' and '${moment(uketukedt_end).format("YYYY-MM-DD")}' `;
+      } else {
+        WHERE += `and uketukedt between '${moment(uketukedt_start).format(
+          "YYYY-MM-DD"
+        )}' and '${moment(uketukedt_end).format("YYYY-MM-DD")}' `;
+      }
+    }
+    if (suitokb_1 && suitokb_2) {
+      if (WHERE == "") {
+        WHERE = `where suitokb in ('${suitokb_1.toUpperCase()}', '${suitokb_2.toUpperCase()}') `;
+      } else {
+        WHERE += `and suitokb in ('${suitokb_1.toUpperCase()}', '${suitokb_2.toUpperCase()}') `;
+      }
+    } else if (suitokb_1) {
+      if (WHERE == "") {
+        WHERE = `where suitokb = '${suitokb_1.toUpperCase()}' `;
+      } else {
+        WHERE += `and suitokb = '${suitokb_1.toUpperCase()}' `;
+      }
+    } else if (suitokb_2) {
+      if (WHERE == "") {
+        WHERE = `where suitokb = '${suitokb_2.toUpperCase()}' `;
+      } else {
+        WHERE += `and suitokb = '${suitokb_2.toUpperCase()}' `;
+      }
+    }
+    query = `select * from cmn.es_ydenpyo ${WHERE} order by denpyono`;
+  }
+  pool.query(query, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    res.status(200).json(results.rows);
+  });
 };
 const getUserById = (request, response) => {
   const id = parseInt(request.params.id);
@@ -121,57 +166,88 @@ const getUserById = (request, response) => {
     response.status(200).json(results.rows);
   });
 };
-const createUser = (request, response) => {
-  const { name, email } = request.body;
+const createSchedule = (req, res) => {
+  let d_ = new Date();
+  let day_ = moment(d_).format("YYYY-MM-DD");
+  console.log(day_);
+  const { suitokb, shiharaidt, kaikeind, uketukedt, bumoncd_ykanr, biko } =
+    req.body;
+  console.log(
+    "123",
+    `INSERT INTO cmn.es_ydenpyo (denpyodt, suitokb, shiharaidt, kaikeind, uketukedt, bumoncd_ykanr, biko) 
+    VALUES('${day_}', '${suitokb}', '${moment(shiharaidt).format(
+      "YYYY-MM-DD"
+    )}', ${kaikeind}, '${moment(uketukedt).format(
+      "YYYY-MM-DD"
+    )}', ${bumoncd_ykanr}, '${biko}')`
+  );
+  let query = `INSERT INTO cmn.es_ydenpyo (denpyodt, suitokb, shiharaidt, kaikeind, uketukedt, bumoncd_ykanr, biko) 
+  VALUES('${day_}', '${suitokb}', '${moment(shiharaidt).format(
+    "YYYY-MM-DD"
+  )}', ${kaikeind}, '${moment(uketukedt).format(
+    "YYYY-MM-DD"
+  )}', ${bumoncd_ykanr}, '${biko}') RETURNING *`;
   pool.query(
-    // "INSERT INTO cmn.DENPYONO (name, email) VALUES ($1, $2)",
-    `INSERT INTO (DENPYONO,
-        KAIKEIND,
-        UKETUKEDT,
-        DENPYODT,
-        BUMONCD,
-        BIKO,
-        SUITOKB,
-        SHIHARAIDT,
-        KINGAKU,
-        INSERT_OPE_ID,
-        INSERT_PGM_ID,
-        INSERT_PGM_PRM,
-        INSERT_DATE,
-        UPDATE_OPE_ID,
-        UPDATE_PGM_IDL,
-        UPDATE_PGM_PRM,
-        UPDATE_DATE) VALUES()`[(name, email)],
+    query,
+    // // "INSERT INTO cmn.DENPYONO (name, email) VALUES ($1, $2)",
+    // `INSERT INTO cmn.es_ydenpyo (denpyodt, suitokb, shiharaidt, kaikeind, uketukedt, bumoncd_ykanr, biko)
+    // VALUES(${day_}, ${suitokb}, ${moment(shiharaidt).format(
+    //   "YYYY-MM-DD"
+    // )}, ${kaikeind}, ${moment(uketukedt).format(
+    //   "YYYY-MM-DD"
+    // )}, ${bumoncd_ykanr}, ${biko})`
+    // [
+    //   day_,
+    //   suitokb,
+    //   moment(shiharaidt).format("YYYY-MM-DD"),
+    //   kaikeind,
+    //   moment(uketukedt).format("YYYY-MM-DD"),
+    //   bumoncd_ykanr,
+    //   biko,
+    // ],
     (error, results) => {
       if (error) {
         throw error;
       }
-      response.status(201).send(`User added with ID: ${result.insertId}`);
+      res.status(201).send(`Datas added with ID: ${results.rows[0].denpyono}`);
     }
   );
 };
-const updateUser = (request, response) => {
-  const id = parseInt(request.params.id);
-  const { name, email } = request.body;
+const updateSchedule = (req, res) => {
+  const id = parseInt(req.params.id);
+  const { suitokb, shiharaidt, kaikeind, uketukedt, bumoncd_ykanr, biko } =
+    req.body;
   pool.query(
-    "UPDATE users SET name = $1, email = $2 WHERE id = $3",
-    [name, email, id],
+    "UPDATE cmn.es_ydenpyo SET suitokb = $1, shiharaidt = $2, kaikeind = $3, uketukedt = $4, bumoncd_ykanr = $5, biko = $6 WHERE denpyono = $7",
+    [
+      suitokb,
+      moment(shiharaidt).format("YYYY-MM-DD"),
+      kaikeind,
+      moment(uketukedt).format("YYYY-MM-DD"),
+      bumoncd_ykanr,
+      biko,
+      id,
+    ],
     (error, results) => {
       if (error) {
         throw error;
       }
-      response.status(200).send(`User modified with ID: ${id}`);
+      res.status(200).send(`Datas modified with ID: ${id}`);
     }
   );
 };
-const deleteUser = (request, response) => {
+const deleteSchedule = (request, response) => {
   const id = parseInt(request.params.id);
-  pool.query("DELETE FROM users WHERE id = $1", [id], (error, results) => {
-    if (error) {
-      throw error;
+  pool.query(
+    "DELETE FROM cmn.es_ydenpyo WHERE denpyono = $1",
+    [id],
+    (error, results) => {
+      if (error) {
+        throw error;
+      }
+      response.status(200).send(`User deleted with ID: ${id}`);
     }
-    response.status(200).send(`User deleted with ID: ${id}`);
-  });
+  );
 };
 
 const getZooms = (req, res) => {
@@ -184,7 +260,6 @@ const getZooms = (req, res) => {
 };
 const searchZooms = (req, res) => {
   const { bumoncd, bumonnm } = req.body;
-  console.log("req", bumoncd, bumonnm);
   let WHERE;
   if (bumoncd && bumonnm) {
     WHERE = `where bumoncd like '${bumoncd}' and bumonnm like '%${bumonnm}%'`;
@@ -208,11 +283,11 @@ const searchZooms = (req, res) => {
 module.exports = {
   getDatas,
   getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
+  deleteSchedule,
   searchSchedule,
   getZooms,
   searchZooms,
   getVouchers,
+  updateSchedule,
+  createSchedule,
 };
