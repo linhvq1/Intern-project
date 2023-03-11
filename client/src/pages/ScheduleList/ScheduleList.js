@@ -15,9 +15,11 @@ import {
   InputNumber,
   message,
 } from "antd";
+import {CloseCircleOutlined} from '@ant-design/icons'
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { toJS } from "mobx";
 
 function ScheduleList({ scheduleStore }) {
   const [form] = Form.useForm();
@@ -424,6 +426,7 @@ function ScheduleList({ scheduleStore }) {
                   width: 170,
                 }}
                 suffixIcon={<PickIcon />}
+                clearIcon={<PickIcon icon={<CloseCircleOutlined />}/>}
               />
             </Form.Item>
             <span className="px-2">-</span>
@@ -486,6 +489,7 @@ function ScheduleList({ scheduleStore }) {
                   width: 170,
                 }}
                 suffixIcon={<PickIcon />}
+                clearIcon={<PickIcon icon={<CloseCircleOutlined />}/>}
               />
             </Form.Item>
           </Form.Item>

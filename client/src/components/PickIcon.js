@@ -1,8 +1,8 @@
 import React from 'react'
 
-function PickIcon() {
+function PickIcon({icon}) {
   return (
-    <div className='font-semibold bg-gray-400 p-1 rounded text-white'>ガ</div>
+    <div className='font-semibold bg-gray-400 p-1 rounded text-white'>{icon || 'ガ'}</div>
   )
 }
 

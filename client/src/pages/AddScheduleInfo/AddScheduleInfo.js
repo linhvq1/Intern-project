@@ -14,6 +14,7 @@ import {
   Result,
   Popconfirm,
 } from "antd";
+import {CloseCircleOutlined} from '@ant-design/icons'
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { useNavigate, useParams } from "react-router-dom";
@@ -36,6 +37,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
   const [resMessage, setResMessage] = useState("");
 
   useEffect(() => {
+    console.log("scheduleStore.schedules", toJS(scheduleStore.schedules));
     if (id) {
       setIsEditMode(true);
       scheduleStore
@@ -280,7 +282,9 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
                       style={{
                         width: 150,
                       }}
+                      inputReadOnly
                       suffixIcon={<PickIcon />}
+                      clearIcon={<PickIcon icon={<CloseCircleOutlined />}/>}
                     />
                   </Form.Item>
                 </div>
@@ -329,7 +333,9 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
               style={{
                 width: 150,
               }}
+              inputReadOnly
               suffixIcon={<PickIcon />}
+              clearIcon={<PickIcon icon={<CloseCircleOutlined />}/>}
             />
           </Form.Item>
           <Form.Item label="起票部門">
