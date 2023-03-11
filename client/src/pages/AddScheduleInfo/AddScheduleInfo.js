@@ -114,7 +114,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
     if (tripData?.length) {
       let sum = tripData.reduce(
         (accumulator, currentValue) =>
-          accumulator + (currentValue?.kingaku || 0),
+          accumulator + (Number(currentValue?.kingaku) || 0),
         0
       );
       setsumMoney(sum);
