@@ -3,20 +3,19 @@ import { Modal, Form, Input, Button, Col, Row, Radio, message } from "antd";
 import CustomTable from "../../components/CustomTable";
 import { inject, observer } from "mobx-react";
 
-
 function RoomModal({ commonStore }) {
   const [selectedRowKeys, setSelectedRowKeys] = useState();
   const [originSelectedRoom, setOriginSelectedRoom] = useState();
-  const [form] = Form.useForm()
+  const [form] = Form.useForm();
 
   useEffect(() => {
-    commonStore.getZooms().catch(err => console.log())
-    setOriginSelectedRoom(commonStore.selectedRoom)
+    commonStore.getZooms().catch((err) => console.log());
+    setOriginSelectedRoom(commonStore.selectedRoom);
     return () => {
-      setSelectedRowKeys()
-    }
-  }, [commonStore.isShowRoomModal])
-  
+      setSelectedRowKeys();
+    };
+  }, [commonStore.isShowRoomModal]);
+
   const columns = [
     {
       title: "部門コード",
@@ -39,17 +38,21 @@ function RoomModal({ commonStore }) {
   const rowSelection = {
     selectedRowKeys,
     onChange: (selectedRowKeys, selectedRows) => {
-      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+      console.log(
+        `selectedRowKeys: ${selectedRowKeys}`,
+        "selectedRows: ",
+        selectedRows
+      );
       setSelectedRowKeys(selectedRowKeys);
-      if(selectedRowKeys) commonStore.setSelectedRoom(selectedRows[0])
+      if (selectedRowKeys) commonStore.setSelectedRoom(selectedRows[0]);
     },
   };
 
-  const onSubmitForm = () =>{
-    form.validateFields().then(values =>{
-      commonStore.searchRoom(values).catch(err => console.log())
-    })
-  }
+  const onSubmitForm = () => {
+    form.validateFields().then((values) => {
+      commonStore.searchRoom(values).catch((err) => console.log());
+    });
+  };
 
   return (
     <Modal
@@ -59,7 +62,7 @@ function RoomModal({ commonStore }) {
       footer={false}
     >
       <Form
-      form={form}
+        form={form}
         labelCol={{
           span: 4,
         }}
@@ -87,9 +90,12 @@ function RoomModal({ commonStore }) {
         <Row>
           <Col span={4}></Col>
           <Col span={20}>
-            <Button className="bg-gray-500 text-white"
+            <Button
+              className="bg-gray-500 text-white"
               onClick={() => onSubmitForm()}
-            >検索</Button>
+            >
+              検索
+            </Button>
           </Col>
         </Row>
       </Form>
@@ -105,22 +111,24 @@ function RoomModal({ commonStore }) {
         }}
       />
       <div className="flex gap-3 mt-4 pl-10">
-        <Button className="bg-gray-500 text-white px-5"
-          onClick={()=> {
-            if(selectedRowKeys) {
-              commonStore.setIsShowRoomModal(false)
-              form.resetFields()
-            }
-            else message.error("You have to select a room!")
-          }}
-        >選択</Button>
         <Button
           className="bg-gray-500 text-white px-5"
           onClick={() => {
-            commonStore.setIsShowRoomModal(false)
-            commonStore.setSelectedRoom(originSelectedRoom)
-            form.resetFields()}
-          }
+            if (selectedRowKeys) {
+              commonStore.setIsShowRoomModal(false);
+              form.resetFields();
+            } else message.error("You have to select a room!");
+          }}
+        >
+          選択
+        </Button>
+        <Button
+          className="bg-gray-500 text-white px-5"
+          onClick={() => {
+            commonStore.setIsShowRoomModal(false);
+            commonStore.setSelectedRoom(originSelectedRoom);
+            form.resetFields();
+          }}
         >
           戻る
         </Button>

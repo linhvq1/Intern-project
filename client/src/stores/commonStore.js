@@ -30,7 +30,7 @@ class CommonStore {
           this.zooms = res.data || [];
           resolve(res.data);
         })
-        .catch((err) => reject());
+        .catch((err) => reject(err));
     });
   };
 
@@ -41,7 +41,7 @@ class CommonStore {
           this.zooms = res.data || [];
           resolve(res.data);
         })
-        .catch((err) => reject());
+        .catch((err) => reject(err));
     });
   };
 }

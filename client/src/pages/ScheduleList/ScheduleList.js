@@ -15,11 +15,12 @@ import {
   InputNumber,
   message,
 } from "antd";
-import {CloseCircleOutlined} from '@ant-design/icons'
+import { CloseCircleOutlined } from "@ant-design/icons";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toJS } from "mobx";
+import dayjs from "dayjs";
 
 function ScheduleList({ scheduleStore }) {
   const [form] = Form.useForm();
@@ -39,6 +40,8 @@ function ScheduleList({ scheduleStore }) {
   }, [scheduleStore.schedules]);
 
   useEffect(() => {
+    if (JSON.parse(localStorage.getItem("tripData")))
+      localStorage.removeItem("tripData");
     setloading(true);
     scheduleStore
       .getScheduleList()
@@ -111,6 +114,7 @@ function ScheduleList({ scheduleStore }) {
     {
       title: "金額",
       dataIndex: "kingaku",
+      className: "sum-column",
       key: "kingaku",
       width: "10%",
       align: "center",
@@ -120,7 +124,7 @@ function ScheduleList({ scheduleStore }) {
       dataIndex: "lineSelection",
       key: "lineSelection",
       render: () => <Checkbox />,
-      width: "10%",
+      width: "7%",
       align: "center",
     },
   ];
@@ -426,7 +430,7 @@ function ScheduleList({ scheduleStore }) {
                   width: 170,
                 }}
                 suffixIcon={<PickIcon />}
-                clearIcon={<PickIcon icon={<CloseCircleOutlined />}/>}
+                clearIcon={<PickIcon icon={<CloseCircleOutlined />} />}
               />
             </Form.Item>
             <span className="px-2">-</span>
@@ -489,7 +493,7 @@ function ScheduleList({ scheduleStore }) {
                   width: 170,
                 }}
                 suffixIcon={<PickIcon />}
-                clearIcon={<PickIcon icon={<CloseCircleOutlined />}/>}
+                clearIcon={<PickIcon icon={<CloseCircleOutlined />} />}
               />
             </Form.Item>
           </Form.Item>
@@ -552,7 +556,7 @@ function ScheduleList({ scheduleStore }) {
         columns={columns}
         dataSource={scheduleStore.schedules}
         styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"}
-        sumable={true}
+        sumable={{ open: true, style: "lg:pr-9" }}
         loading={loading}
         sum={sumMoney}
         recordKey={"denpyono"}

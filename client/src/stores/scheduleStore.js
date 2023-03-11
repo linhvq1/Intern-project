@@ -6,6 +6,12 @@ class scheduleStore {
     makeAutoObservable(this);
   }
   schedules = [];
+  selectedTrip = {};
+
+  setSelectedTrip = (data) => {
+    this.selectedTrip = data;
+  };
+
   getScheduleList = () => {
     return new Promise((resolve, reject) => {
       UserRequest.getScheduleList()
@@ -13,7 +19,7 @@ class scheduleStore {
           this.schedules = res.data || [];
           resolve(res.data);
         })
-        .catch((err) => reject());
+        .catch((err) => reject(err));
     });
   };
 
@@ -24,7 +30,7 @@ class scheduleStore {
           this.schedules = res.data || [];
           resolve(res.data);
         })
-        .catch((err) => reject());
+        .catch((err) => reject(err));
     });
   };
 
@@ -34,7 +40,7 @@ class scheduleStore {
         .then((res) => {
           resolve(res.data);
         })
-        .catch((err) => reject());
+        .catch((err) => reject(err));
     });
   };
 
@@ -44,7 +50,7 @@ class scheduleStore {
         .then((res) => {
           resolve(res.data);
         })
-        .catch((err) => reject());
+        .catch((err) => reject(err));
     });
   };
 
@@ -54,7 +60,7 @@ class scheduleStore {
         .then((res) => {
           resolve(res.data);
         })
-        .catch((err) => reject());
+        .catch((err) => reject(err));
     });
   };
 }

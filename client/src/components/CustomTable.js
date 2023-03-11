@@ -33,9 +33,14 @@ const StyledTable = styled(Table)`
   .ant-table-body {
     overflow-y: auto !important;
   }
+
+  .table-row-dark {
+    background-color: #d9d3d3;
+  }
 `;
 
 const CustomTable = ({
+  rowClassName = false,
   loading = false,
   sum,
   columns,
@@ -46,9 +51,11 @@ const CustomTable = ({
   onDoubleClick,
   rowSelection = false,
 }) => {
+  console.log(document.querySelectorAll(".sum-column"));
   return (
     <>
       <StyledTable
+        rowClassName={rowClassName}
         loading={loading}
         className={styles}
         columns={columns}
@@ -60,8 +67,12 @@ const CustomTable = ({
         rowSelection={rowSelection}
         onRow={onDoubleClick}
       />
-      {sumable && (
-        <div className="flex gap-2 items-center justify-end pr-44 mt-4">
+      {sumable?.open && (
+        <div
+          className={`flex gap-2 items-center justify-end mt-4 ${
+            sumable?.style || "pr-32"
+          }`}
+        >
           <span className="font-bold">交通費計</span>
           <Input
             defaultValue={0}

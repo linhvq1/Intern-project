@@ -14,7 +14,7 @@ import {
   Result,
   Popconfirm,
 } from "antd";
-import {CloseCircleOutlined} from '@ant-design/icons'
+import { CloseCircleOutlined } from "@ant-design/icons";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { useNavigate, useParams } from "react-router-dom";
@@ -24,8 +24,25 @@ import { inject, observer } from "mobx-react";
 import { toJS } from "mobx";
 import moment from "moment";
 import vi from "antd/lib/date-picker/locale/vi_VN";
+import dayjs from "dayjs";
 
 import SuccessImage from "../../assets/pngs/payment-successful.webp";
+
+function isObjEmpty(obj) {
+  if (
+    obj &&
+    Object.keys(obj).length === 0 &&
+    Object.getPrototypeOf(obj) === Object.prototype
+  )
+    return true;
+  return false;
+}
+
+function mergeTwoArray(arr1, arr2, key) {
+  let ids = new Set(arr1.map((d) => d[key]));
+  let merged = [...arr1, ...arr2.filter((d) => !ids.has(d[key]))];
+  return merged;
+}
 
 function AddScheduleInfo({ commonStore, scheduleStore }) {
   const [form] = Form.useForm();
@@ -35,29 +52,74 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isOpenEndModal, setIsOpenEndModal] = useState({ open: false });
   const [resMessage, setResMessage] = useState("");
+  const [tripData, setTripData] = useState([]);
+  const [sumMoney, setsumMoney] = useState(0);
 
   useEffect(() => {
-    console.log("scheduleStore.schedules", toJS(scheduleStore.schedules));
+    const hanleTempRecord = (initialValue) => {
+      let tripList = JSON.parse(localStorage.getItem("tripData"));
+      if (!tripList)
+        localStorage.setItem("tripData", JSON.stringify(initialValue));
+      else {
+        let arrMerge = mergeTwoArray(tripList, initialValue, "gyono");
+        if (
+          scheduleStore.selectedTrip &&
+          !isObjEmpty(scheduleStore.selectedTrip)
+        ) {
+          if (
+            !arrMerge.some(
+              (trip) => trip.gyono === scheduleStore.selectedTrip?.gyono
+            )
+          ) {
+            arrMerge = [...arrMerge, scheduleStore.selectedTrip];
+          } else {
+            arrMerge = arrMerge.map((el) =>
+              el?.gyono === scheduleStore.selectedTrip?.gyono
+                ? scheduleStore.selectedTrip
+                : el
+            );
+          }
+        }
+        localStorage.setItem("tripData", JSON.stringify(arrMerge));
+        return arrMerge;
+      }
+    };
     if (id) {
       setIsEditMode(true);
       scheduleStore
         .searchScheduleList({ denpyono: id })
         .then((res) => {
           if (res?.length) {
+            setTripData(hanleTempRecord(res[0]?.trips) || []);
+
             form.setFieldsValue({
               ...res[0],
               denpyodt: moment(res[0]?.denpyodt).format("DD-MM-YYYY"),
-              shiharaidt: moment(res[0]?.shiharaidt),
-              uketukedt: moment(res[0]?.uketukedt),
+              shiharaidt: dayjs(res[0]?.shiharaidt),
+              uketukedt: dayjs(res[0]?.uketukedt),
             });
             handleOnChangeRoomId(res[0]?.bumoncd_ykanr);
           }
         })
         .catch((err) => {
+          console.log(err);
           message.error("something went wrong");
         });
+    } else {
+      setTripData(hanleTempRecord([]));
     }
   }, []);
+
+  useEffect(() => {
+    if (tripData?.length) {
+      let sum = tripData.reduce(
+        (accumulator, currentValue) =>
+          accumulator + (currentValue?.kingaku || 0),
+        0
+      );
+      setsumMoney(sum);
+    }
+  }, [tripData]);
 
   useEffect(() => {
     if (commonStore.selectedRoom) {
@@ -78,53 +140,63 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
           dataIndex: "index",
           width: "3%",
           key: "index",
-          render: (text) => <a>{text}</a>,
+          render: (_, record, index) => <a>{index + 1}</a>,
           align: "center",
         },
         {
           title: "年月日",
-          dataIndex: "spliNum",
-          key: "spliNum",
+          dataIndex: "idodt",
+          key: "idodt",
           width: "8%",
           align: "center",
+          render: (record) => (
+            <span>{moment(record).zone("+0700").format("DD-MM-YYYY")}</span>
+          ),
         },
         {
           title: "出発地",
-          dataIndex: "ticket",
-          key: "ticket",
+          dataIndex: "shuppatsuplc",
+          key: "shuppatsuplc",
           width: "10%",
           align: "center",
         },
         {
           title: "目的地",
-          dataIndex: "splitDate",
-          key: "splitDate",
+          dataIndex: "mokutekiplc",
+          key: "mokutekiplc",
           width: "10%",
           align: "center",
         },
         {
           title: "経路",
-          dataIndex: "filingDate",
-          key: "filingDate",
+          dataIndex: "keiro",
+          key: "keiro",
           width: "20%",
           align: "center",
         },
         {
           title: "金額",
-          dataIndex: "casherMethod",
-          key: "casherMethod",
+          dataIndex: "kingaku",
+          className: "sum-column",
+          key: "kingaku",
           width: "5%",
           align: "center",
         },
       ],
     },
   ];
+  const handleClearTemp = () => {
+    localStorage.removeItem("tripData");
+    scheduleStore.setSelectedTrip({});
+    setTripData([]);
+  };
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
+      console.log("response", response);
       if (isEditMode) {
         scheduleStore
-          .updateSchedule(id, response)
+          .updateSchedule(id, { ...response, trips: tripData })
           .then((res) => {
             setIsOpenEndModal({ open: true, mode: 1 });
             setResMessage(res);
@@ -132,7 +204,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
           .catch((err) => message.error("Fail to update!"));
       } else
         scheduleStore
-          .createSchedule(response)
+          .createSchedule({ ...response, trips: tripData })
           .then((res) => {
             setIsOpenEndModal({ open: true, mode: 0 });
             setResMessage(res);
@@ -221,7 +293,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
               </Popconfirm>
               <Button
                 className="bg-gray-500 text-white"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("/")}
               >
                 終了
               </Button>
@@ -284,7 +356,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
                       }}
                       inputReadOnly
                       suffixIcon={<PickIcon />}
-                      clearIcon={<PickIcon icon={<CloseCircleOutlined />}/>}
+                      clearIcon={<PickIcon icon={<CloseCircleOutlined />} />}
                     />
                   </Form.Item>
                 </div>
@@ -335,7 +407,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
               }}
               inputReadOnly
               suffixIcon={<PickIcon />}
-              clearIcon={<PickIcon icon={<CloseCircleOutlined />}/>}
+              clearIcon={<PickIcon icon={<CloseCircleOutlined />} />}
             />
           </Form.Item>
           <Form.Item label="起票部門">
@@ -347,6 +419,24 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
                   required: true,
                   message: "Please input",
                 },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    function later(delay) {
+                      return new Promise(function (resolve, reject) {
+                        setTimeout(() => {
+                          if (value && !getFieldValue("bumonnm")) {
+                            return reject("起票部門 does not exist!");
+                          } else {
+                            return resolve();
+                          }
+                        }, delay);
+                      });
+                    }
+                    return later(100)
+                      .then((res) => Promise.resolve())
+                      .catch((err) => Promise.reject(err));
+                  },
+                }),
               ]}
             >
               <Input
@@ -397,7 +487,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
             <Col span={20} className="flex justify-end lg:pr-10">
               <Button
                 className="bg-gray-500 text-white"
-                onClick={() => navigate(`/detail-schedule/${1}`)}
+                onClick={() => navigate(`/detail-schedule`)}
               >
                 明細追加
               </Button>
@@ -406,9 +496,21 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
         </CustomForm>
       </div>
       <CustomTable
+        rowClassName={(record) => (record?.isDelete ? "table-row-dark" : "")}
+        recordKey={"gyono"}
+        sum={sumMoney}
+        dataSource={tripData}
         columns={columns}
         styles={"lg:pr-9 lg:pl-14 xl:pl-28 mt-4"}
-        sumable={true}
+        sumable={{ open: true, style: "lg:pr-9" }}
+        onDoubleClick={(record) => {
+          return {
+            onDoubleClick: () => {
+              navigate(`/detail-schedule/${record?.gyono}`);
+              scheduleStore.setSelectedTrip(record);
+            },
+          };
+        }}
       />
       <RoomModal />
       <Modal closable={false} open={isOpenEndModal.open} footer={false}>
@@ -425,7 +527,10 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
             <Button
               className="bg-blue-500 text-white"
               key="console"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                navigate("/");
+                handleClearTemp();
+              }}
             >
               Home
             </Button>,

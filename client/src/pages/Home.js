@@ -9,13 +9,14 @@ import ScheduleList from "./ScheduleList/ScheduleList";
 function Home({ commonStore, scheduleStore }) {
   return (
     <div className="bg-gray-50 h-screen transition-height duration-75 ease-out">
-      <Navbar className="h-screen flex-initial" />
-      <div className="pb-2 flex-1 h-screen overflow-y-auto">
+      <Navbar />
+      <div className="pb-2 flex-1 h-[calc(100%-2.75rem)] overflow-y-auto">
         <Routes>
           <Route path="/" element={<ScheduleList />} />
           <Route path="add-schedule/:id" element={<AddScheduleInfo />} />
           <Route path="add-schedule/" element={<AddScheduleInfo />} />
           <Route path="detail-schedule/:parentId" element={<TripDetail />} />
+          <Route path="detail-schedule/" element={<TripDetail />} />
           <Route
             path="*"
             element={
