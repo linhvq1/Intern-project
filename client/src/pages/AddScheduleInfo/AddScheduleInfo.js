@@ -110,7 +110,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
             ? dayjs(scheduleData?.uketukedt)
             : null,
           kaikeind: scheduleData?.kaikeind
-            ? dayjs(scheduleData?.kaikeind)
+            ? dayjs(new Date(scheduleData?.kaikeind, 0))
             : null,
         });
         handleOnChangeRoomId(scheduleData?.bumoncd_ykanr);

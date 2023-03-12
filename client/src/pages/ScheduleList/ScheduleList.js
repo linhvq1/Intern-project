@@ -135,9 +135,13 @@ function ScheduleList({ scheduleStore, commonStore }) {
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
+      console.log("response", moment(response.kaikeind).format("YYYY"));
       setloading(true);
       scheduleStore
-        .searchScheduleList(response)
+        .searchScheduleList({
+          ...response,
+          kaikeind: moment(response.kaikeind).format("YYYY"),
+        })
         .then(() => {
           setloading(false);
           message.success("Done!");
