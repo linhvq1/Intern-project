@@ -7,6 +7,44 @@ class scheduleStore {
   }
   schedules = [];
   selectedTrip = {};
+  isShowRoomModal = false;
+  selectedRoom = {};
+  payMethodOption = ["ATM", "Cash", "Online", "Offline"];
+  zooms = [];
+
+  setSelectedRoom = (data) => {
+    this.selectedRoom = data;
+  };
+
+  setIsShowRoomModal = (state) => {
+    this.isShowRoomModal = state;
+  };
+
+  setLoadingProgress = (state) => {
+    this.isLoading = state;
+  };
+
+  getZooms = () => {
+    return new Promise((resolve, reject) => {
+      UserRequest.getZooms()
+        .then((res) => {
+          this.zooms = res.data || [];
+          resolve(res.data);
+        })
+        .catch((err) => reject(err));
+    });
+  };
+
+  searchRoom = (body) => {
+    return new Promise((resolve, reject) => {
+      UserRequest.searchRoom(body)
+        .then((res) => {
+          this.zooms = res.data || [];
+          resolve(res.data);
+        })
+        .catch((err) => reject(err));
+    });
+  };
 
   setSelectedTrip = (data) => {
     this.selectedTrip = data;

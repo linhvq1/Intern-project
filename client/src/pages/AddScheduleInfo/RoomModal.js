@@ -3,18 +3,18 @@ import { Modal, Form, Input, Button, Col, Row, Radio, message } from "antd";
 import CustomTable from "../../components/CustomTable";
 import { inject, observer } from "mobx-react";
 
-function RoomModal({ commonStore }) {
+function RoomModal({ scheduleStore }) {
   const [selectedRowKeys, setSelectedRowKeys] = useState();
   const [originSelectedRoom, setOriginSelectedRoom] = useState();
   const [form] = Form.useForm();
 
   useEffect(() => {
-    commonStore.getZooms().catch((err) => console.log());
-    setOriginSelectedRoom(commonStore.selectedRoom);
+    scheduleStore.getZooms().catch((err) => console.log());
+    setOriginSelectedRoom(scheduleStore.selectedRoom);
     return () => {
       setSelectedRowKeys();
     };
-  }, [commonStore.isShowRoomModal]);
+  }, [scheduleStore.isShowRoomModal]);
 
   const columns = [
     {
@@ -44,20 +44,20 @@ function RoomModal({ commonStore }) {
         selectedRows
       );
       setSelectedRowKeys(selectedRowKeys);
-      if (selectedRowKeys) commonStore.setSelectedRoom(selectedRows[0]);
+      if (selectedRowKeys) scheduleStore.setSelectedRoom(selectedRows[0]);
     },
   };
 
   const onSubmitForm = () => {
     form.validateFields().then((values) => {
-      commonStore.searchRoom(values).catch((err) => console.log());
+      scheduleStore.searchRoom(values).catch((err) => console.log());
     });
   };
 
   return (
     <Modal
       closable={false}
-      open={commonStore.isShowRoomModal}
+      open={scheduleStore.isShowRoomModal}
       width={900}
       footer={false}
     >
@@ -103,7 +103,7 @@ function RoomModal({ commonStore }) {
         columns={columns}
         styles={"mt-4"}
         sumable={false}
-        dataSource={commonStore.zooms}
+        dataSource={scheduleStore.zooms}
         recordKey={"bumoncd"}
         rowSelection={{
           type: "radio",
@@ -115,7 +115,7 @@ function RoomModal({ commonStore }) {
           className="bg-gray-500 text-white px-5"
           onClick={() => {
             if (selectedRowKeys) {
-              commonStore.setIsShowRoomModal(false);
+              scheduleStore.setIsShowRoomModal(false);
               form.resetFields();
             } else message.error("You have to select a room!");
           }}
@@ -125,8 +125,8 @@ function RoomModal({ commonStore }) {
         <Button
           className="bg-gray-500 text-white px-5"
           onClick={() => {
-            commonStore.setIsShowRoomModal(false);
-            commonStore.setSelectedRoom(originSelectedRoom);
+            scheduleStore.setIsShowRoomModal(false);
+            scheduleStore.setSelectedRoom(originSelectedRoom);
             form.resetFields();
           }}
         >
@@ -137,4 +137,4 @@ function RoomModal({ commonStore }) {
   );
 }
 
-export default inject("commonStore")(observer(RoomModal));
+export default inject("scheduleStore")(observer(RoomModal));

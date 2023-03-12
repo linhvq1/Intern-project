@@ -14,7 +14,6 @@ import { Provider } from "mobx-react";
 import stores from "./stores";
 import Home from "./pages/Home";
 
-const commonStore = stores.commonStore;
 function App() {
   return (
     <Provider {...stores}>

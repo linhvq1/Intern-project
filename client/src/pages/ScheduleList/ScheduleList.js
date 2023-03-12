@@ -15,14 +15,14 @@ import {
   InputNumber,
   message,
 } from "antd";
-import { CloseCircleOutlined } from "@ant-design/icons";
+import { CloseCircleOutlined, DownOutlined } from "@ant-design/icons";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toJS } from "mobx";
 import dayjs from "dayjs";
 
-function ScheduleList({ scheduleStore }) {
+function ScheduleList({ scheduleStore, commonStore }) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [sumMoney, setsumMoney] = useState(0);
@@ -40,8 +40,8 @@ function ScheduleList({ scheduleStore }) {
   }, [scheduleStore.schedules]);
 
   useEffect(() => {
-    if (JSON.parse(localStorage.getItem("tripData")))
-      localStorage.removeItem("tripData");
+    localStorage.removeItem("tripData");
+    localStorage.removeItem("scheduleData");
     setloading(true);
     scheduleStore
       .getScheduleList()
@@ -105,11 +105,12 @@ function ScheduleList({ scheduleStore }) {
       align: "center",
     },
     {
-      title: "出張目的",
+      title: "出張目的(備考)",
       dataIndex: "biko",
       key: "biko",
       width: "30%",
       align: "center",
+      ellipsis: true,
     },
     {
       title: "金額",
@@ -129,7 +130,7 @@ function ScheduleList({ scheduleStore }) {
     },
   ];
   const formatDate = (date) => {
-    return date.format("DD-MM-YYYY");
+    return date?.format("DD-MM-YYYY");
   };
 
   const onSubmit = () => {
@@ -165,26 +166,13 @@ function ScheduleList({ scheduleStore }) {
           }}
         >
           <Form.Item label="年度" name="kaikeind">
-            <Select
-              allowClear
+            <DatePicker
+              suffixIcon={<DownOutlined />}
               style={{
-                width: 170,
+                width: 150,
               }}
-              options={[
-                {
-                  value: "2023",
-                },
-                {
-                  value: "2022",
-                },
-                {
-                  value: "2021",
-                },
-                {
-                  value: "2020",
-                },
-              ]}
-            ></Select>
+              picker="year"
+            />
           </Form.Item>
           <Form.Item label="伝票番号">
             <Form.Item
@@ -209,6 +197,12 @@ function ScheduleList({ scheduleStore }) {
                       (value < getFieldValue("denpyono_end") &&
                         isInteger.test(`${value}`))
                     ) {
+                      form.setFields([
+                        {
+                          name: "denpyono_end",
+                          errors: [],
+                        },
+                      ]);
                       return Promise.resolve();
                     }
 
@@ -252,6 +246,12 @@ function ScheduleList({ scheduleStore }) {
                       (value > getFieldValue("denpyono_start") &&
                         isInteger.test(`${value}`))
                     ) {
+                      form.setFields([
+                        {
+                          name: "denpyono_start",
+                          errors: [],
+                        },
+                      ]);
                       return Promise.resolve();
                     }
 
@@ -280,9 +280,10 @@ function ScheduleList({ scheduleStore }) {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
-                    if (!value && getFieldValue("denpyodt_end"))
+                    const denpyodtEnd = getFieldValue("denpyodt_end");
+                    if (!value && denpyodtEnd)
                       return Promise.reject(new Error("Please select date"));
-                    if (!value && !getFieldValue("denpyodt_end"))
+                    if (!value && !denpyodtEnd)
                       form.setFields([
                         {
                           name: "denpyodt_end",
@@ -290,20 +291,23 @@ function ScheduleList({ scheduleStore }) {
                         },
                       ]);
                     if (
-                      !value ||
-                      !getFieldValue("denpyodt_end") ||
-                      moment(formatDate(value)).isBefore(
-                        formatDate(getFieldValue("denpyodt_end"))
-                      )
-                    ) {
+                      value &&
+                      denpyodtEnd &&
+                      formatDate(value) === formatDate(denpyodtEnd)
+                    )
+                      return Promise.reject(
+                        new Error("Dates are not allowed to be the same!")
+                      );
+                    if (!value || !denpyodtEnd || value < denpyodtEnd) {
+                      form.setFields([
+                        {
+                          name: "denpyodt_end",
+                          errors: [],
+                        },
+                      ]);
                       return Promise.resolve();
                     }
-                    if (
-                      !moment(formatDate(value)).isBefore(
-                        formatDate(getFieldValue("denpyodt_end"))
-                      ) &&
-                      value
-                    )
+                    if (value >= denpyodtEnd && value)
                       return Promise.reject(
                         new Error(
                           "The previous day must be smaller than the next day!"
@@ -319,6 +323,8 @@ function ScheduleList({ scheduleStore }) {
                 style={{
                   width: 170,
                 }}
+                suffixIcon={<PickIcon />}
+                clearIcon={<PickIcon icon={<CloseCircleOutlined />} />}
               />
             </Form.Item>
             <span className="px-2">-</span>
@@ -328,9 +334,11 @@ function ScheduleList({ scheduleStore }) {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
-                    if (!value && getFieldValue("denpyodt_start"))
+                    const denpyodtStart = getFieldValue("denpyodt_start");
+
+                    if (!value && denpyodtStart)
                       return Promise.reject(new Error("Please select date"));
-                    if (!value && !getFieldValue("denpyodt_start"))
+                    if (!value && !denpyodtStart)
                       form.setFields([
                         {
                           name: "denpyodt_start",
@@ -338,20 +346,23 @@ function ScheduleList({ scheduleStore }) {
                         },
                       ]);
                     if (
-                      !value ||
-                      !getFieldValue("denpyodt_start") ||
-                      moment(formatDate(value)).isAfter(
-                        formatDate(getFieldValue("denpyodt_start"))
-                      )
-                    ) {
+                      value &&
+                      denpyodtStart &&
+                      formatDate(value) === formatDate(denpyodtStart)
+                    )
+                      return Promise.reject(
+                        new Error("Dates are not allowed to be the same!")
+                      );
+                    if (!value || !denpyodtStart || value > denpyodtStart) {
+                      form.setFields([
+                        {
+                          name: "denpyodt_start",
+                          errors: [],
+                        },
+                      ]);
                       return Promise.resolve();
                     }
-                    if (
-                      !moment(formatDate(value)).isAfter(
-                        formatDate(getFieldValue("denpyodt_start"))
-                      ) &&
-                      value
-                    )
+                    if (value <= denpyodtStart && value)
                       return Promise.reject(
                         new Error(
                           "The next day must be greater than the day before!"
@@ -367,6 +378,8 @@ function ScheduleList({ scheduleStore }) {
                 style={{
                   width: 170,
                 }}
+                suffixIcon={<PickIcon />}
+                clearIcon={<PickIcon icon={<CloseCircleOutlined />} />}
               />
             </Form.Item>
           </Form.Item>
@@ -377,9 +390,10 @@ function ScheduleList({ scheduleStore }) {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
-                    if (!value && getFieldValue("uketukedt_end"))
+                    const uketukedtEnd = getFieldValue("uketukedt_end");
+                    if (!value && uketukedtEnd)
                       return Promise.reject(new Error("Please select date"));
-                    if (!value && !getFieldValue("uketukedt_end"))
+                    if (!value && !uketukedtEnd)
                       form.setFields([
                         {
                           name: "uketukedt_end",
@@ -388,32 +402,22 @@ function ScheduleList({ scheduleStore }) {
                       ]);
                     if (
                       value &&
-                      getFieldValue("uketukedt_end") &&
-                      moment(formatDate(value)).isSame(
-                        formatDate(getFieldValue("uketukedt_end"))
-                      )
+                      uketukedtEnd &&
+                      formatDate(value) === formatDate(uketukedtEnd)
                     )
                       return Promise.reject(
                         new Error("Dates are not allowed to be the same!")
                       );
-                    if (
-                      !value ||
-                      !getFieldValue("uketukedt_end") ||
-                      (moment(formatDate(value)).isBefore(
-                        formatDate(getFieldValue("uketukedt_end"))
-                      ) &&
-                        !moment(formatDate(value)).isSame(
-                          formatDate(getFieldValue("uketukedt_end"))
-                        ))
-                    ) {
+                    if (!value || !uketukedtEnd || value < uketukedtEnd) {
+                      form.setFields([
+                        {
+                          name: "uketukedt_end",
+                          errors: [],
+                        },
+                      ]);
                       return Promise.resolve();
                     }
-                    if (
-                      !moment(formatDate(value)).isBefore(
-                        formatDate(getFieldValue("uketukedt_end"))
-                      ) &&
-                      value
-                    )
+                    if (value >= uketukedtEnd && value)
                       return Promise.reject(
                         new Error(
                           "The previous day must be smaller than the next day!"
@@ -440,9 +444,11 @@ function ScheduleList({ scheduleStore }) {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
-                    if (!value && getFieldValue("uketukedt_start"))
+                    const uketukedtStart = getFieldValue("uketukedt_start");
+
+                    if (!value && uketukedtStart)
                       return Promise.reject(new Error("Please select date"));
-                    if (!value && !getFieldValue("uketukedt_start"))
+                    if (!value && !uketukedtStart)
                       form.setFields([
                         {
                           name: "uketukedt_start",
@@ -451,32 +457,22 @@ function ScheduleList({ scheduleStore }) {
                       ]);
                     if (
                       value &&
-                      getFieldValue("uketukedt_start") &&
-                      moment(formatDate(value)).isSame(
-                        formatDate(getFieldValue("uketukedt_start"))
-                      )
+                      uketukedtStart &&
+                      formatDate(value) === formatDate(uketukedtStart)
                     )
                       return Promise.reject(
                         new Error("Dates are not allowed to be the same!")
                       );
-                    if (
-                      !value ||
-                      !getFieldValue("uketukedt_start") ||
-                      (moment(formatDate(value)).isAfter(
-                        formatDate(getFieldValue("uketukedt_start"))
-                      ) &&
-                        !moment(formatDate(value)).isSame(
-                          formatDate(getFieldValue("uketukedt_start"))
-                        ))
-                    ) {
+                    if (!value || !uketukedtStart || value > uketukedtStart) {
+                      form.setFields([
+                        {
+                          name: "uketukedt_start",
+                          errors: [],
+                        },
+                      ]);
                       return Promise.resolve();
                     }
-                    if (
-                      !moment(formatDate(value)).isAfter(
-                        formatDate(getFieldValue("uketukedt_start"))
-                      ) &&
-                      value
-                    )
+                    if (value <= uketukedtStart && value)
                       return Promise.reject(
                         new Error(
                           "The next day must be greater than the day before!"
@@ -504,14 +500,9 @@ function ScheduleList({ scheduleStore }) {
                 style={{
                   width: 170,
                 }}
-                options={[
-                  {
-                    value: "online",
-                  },
-                  {
-                    value: "offline",
-                  },
-                ]}
+                options={scheduleStore.payMethodOption?.map((el) => ({
+                  value: el,
+                }))}
               ></Select>
             </Form.Item>
             <span className="px-2">-</span>
@@ -521,14 +512,9 @@ function ScheduleList({ scheduleStore }) {
                 style={{
                   width: 170,
                 }}
-                options={[
-                  {
-                    value: "ATM",
-                  },
-                  {
-                    value: "Cash",
-                  },
-                ]}
+                options={scheduleStore.payMethodOption?.map((el) => ({
+                  value: el,
+                }))}
               ></Select>
             </Form.Item>
             <Button
@@ -572,4 +558,4 @@ function ScheduleList({ scheduleStore }) {
   );
 }
 
-export default inject("scheduleStore")(observer(ScheduleList));
+export default inject("scheduleStore", "commonStore")(observer(ScheduleList));

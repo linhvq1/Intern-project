@@ -61,7 +61,7 @@ const CustomTable = ({
         bordered
         dataSource={dataSource}
         pagination={false}
-        scroll={{ y: 240 }}
+        scroll={{ y: 275 }}
         rowKey={(record) => record[recordKey]}
         rowSelection={rowSelection}
         onRow={onDoubleClick}

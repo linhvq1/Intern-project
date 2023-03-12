@@ -13,8 +13,9 @@ import {
   Modal,
   Result,
   Popconfirm,
+  InputNumber,
 } from "antd";
-import { CloseCircleOutlined } from "@ant-design/icons";
+import { CloseCircleOutlined, DownOutlined } from "@ant-design/icons";
 import PickIcon from "../../components/PickIcon";
 import CustomTable from "../../components/CustomTable";
 import { useNavigate, useParams } from "react-router-dom";
@@ -84,6 +85,37 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
         return arrMerge;
       }
     };
+
+    const handleSheduleTemp = (initialValue = {}) => {
+      let scheduleData = JSON.parse(localStorage.getItem("scheduleData"));
+      if (!scheduleData) {
+        localStorage.setItem("scheduleData", JSON.stringify(initialValue));
+        if (!isObjEmpty(initialValue)) {
+          form.setFieldsValue({
+            ...initialValue,
+            denpyodt: moment(initialValue?.denpyodt).format("DD-MM-YYYY"),
+            shiharaidt: dayjs(initialValue?.shiharaidt),
+            uketukedt: dayjs(initialValue?.uketukedt),
+          });
+          handleOnChangeRoomId(initialValue?.bumoncd_ykanr);
+        }
+      } else {
+        form.setFieldsValue({
+          ...scheduleData,
+          bumoncd_ykanr: scheduleData?.bumoncd_ykanr,
+          shiharaidt: scheduleData?.shiharaidt
+            ? dayjs(scheduleData?.shiharaidt)
+            : null,
+          uketukedt: scheduleData?.uketukedt
+            ? dayjs(scheduleData?.uketukedt)
+            : null,
+          kaikeind: scheduleData?.kaikeind
+            ? dayjs(scheduleData?.kaikeind)
+            : null,
+        });
+        handleOnChangeRoomId(scheduleData?.bumoncd_ykanr);
+      }
+    };
     if (id) {
       setIsEditMode(true);
       scheduleStore
@@ -91,14 +123,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
         .then((res) => {
           if (res?.length) {
             setTripData(hanleTempRecord(res[0]?.trips) || []);
-
-            form.setFieldsValue({
-              ...res[0],
-              denpyodt: moment(res[0]?.denpyodt).format("DD-MM-YYYY"),
-              shiharaidt: dayjs(res[0]?.shiharaidt),
-              uketukedt: dayjs(res[0]?.uketukedt),
-            });
-            handleOnChangeRoomId(res[0]?.bumoncd_ykanr);
+            handleSheduleTemp(res[0] || {});
           }
         })
         .catch((err) => {
@@ -107,6 +132,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
         });
     } else {
       setTripData(hanleTempRecord([]));
+      handleSheduleTemp({});
     }
   }, []);
 
@@ -122,14 +148,14 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
   }, [tripData]);
 
   useEffect(() => {
-    if (commonStore.selectedRoom) {
-      let { bumoncd, bumonnm } = commonStore.selectedRoom;
+    if (!isObjEmpty(scheduleStore.selectedRoom)) {
+      let { bumoncd, bumonnm } = scheduleStore.selectedRoom;
       form.setFieldsValue({
         bumoncd_ykanr: bumoncd,
         bumonnm,
       });
     }
-  }, [commonStore.selectedRoom]);
+  }, [scheduleStore.selectedRoom]);
 
   const columns = [
     {
@@ -159,6 +185,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
           key: "shuppatsuplc",
           width: "10%",
           align: "center",
+          ellipsis: true,
         },
         {
           title: "目的地",
@@ -166,6 +193,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
           key: "mokutekiplc",
           width: "10%",
           align: "center",
+          ellipsis: true,
         },
         {
           title: "経路",
@@ -173,6 +201,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
           key: "keiro",
           width: "20%",
           align: "center",
+          ellipsis: true,
         },
         {
           title: "金額",
@@ -187,6 +216,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
   ];
   const handleClearTemp = () => {
     localStorage.removeItem("tripData");
+    localStorage.removeItem("scheduleData");
     scheduleStore.setSelectedTrip({});
     setTripData([]);
   };
@@ -218,7 +248,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
       form.setFieldsValue({ bumonnm: "" });
       return;
     }
-    commonStore.searchRoom({ bumoncd: value }).then((res) => {
+    scheduleStore.searchRoom({ bumoncd: value }).then((res) => {
       if (res?.length > 0) {
         let { bumonnm } = res[0];
         form.setFieldsValue({
@@ -293,7 +323,10 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
               </Popconfirm>
               <Button
                 className="bg-gray-500 text-white"
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  handleClearTemp();
+                  navigate("/");
+                }}
               >
                 終了
               </Button>
@@ -328,14 +361,9 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
                       style={{
                         width: 150,
                       }}
-                      options={[
-                        {
-                          value: "online",
-                        },
-                        {
-                          value: "offline",
-                        },
-                      ]}
+                      options={scheduleStore.payMethodOption?.map((el) => ({
+                        value: el,
+                      }))}
                     ></Select>
                   </Form.Item>
                   <Form.Item
@@ -373,22 +401,13 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
               },
             ]}
           >
-            <Select
+            <DatePicker
               style={{
                 width: 150,
               }}
-              options={[
-                {
-                  value: "2022",
-                },
-                {
-                  value: "2021",
-                },
-                {
-                  value: "2020",
-                },
-              ]}
-            ></Select>
+              picker="year"
+              suffixIcon={<DownOutlined />}
+            />
           </Form.Item>
           <Form.Item
             label="申請日"
@@ -439,11 +458,12 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
                 }),
               ]}
             >
-              <Input
+              <InputNumber
                 style={{
                   width: 100,
                 }}
-                onChange={(e) => handleOnChangeRoomId(e.target.value)}
+                min={0}
+                onChange={(value) => handleOnChangeRoomId(value)}
               />
             </Form.Item>
             <Form.Item name="bumonnm" className="mb-0 mr-3">
@@ -457,7 +477,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
             <Button
               className="px-0 py-0"
               icon={<PickIcon />}
-              onClick={() => commonStore.setIsShowRoomModal(true)}
+              onClick={() => scheduleStore.setIsShowRoomModal(true)}
             />
           </Form.Item>
           <Form.Item
@@ -487,7 +507,18 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
             <Col span={20} className="flex justify-end lg:pr-10">
               <Button
                 className="bg-gray-500 text-white"
-                onClick={() => navigate(`/detail-schedule`)}
+                onClick={() => {
+                  let data = form.getFieldsValue([
+                    "suitokb",
+                    "shiharaidt",
+                    "kaikeind",
+                    "uketukedt",
+                    "bumoncd_ykanr",
+                    "biko",
+                  ]);
+                  localStorage.setItem("scheduleData", JSON.stringify(data));
+                  navigate(`/detail-schedule`);
+                }}
               >
                 明細追加
               </Button>
@@ -506,8 +537,8 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
         onDoubleClick={(record) => {
           return {
             onDoubleClick: () => {
-              navigate(`/detail-schedule/${record?.gyono}`);
               scheduleStore.setSelectedTrip(record);
+              navigate(`/detail-schedule/${record?.gyono}`);
             },
           };
         }}
@@ -528,8 +559,8 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
               className="bg-blue-500 text-white"
               key="console"
               onClick={() => {
-                navigate("/");
                 handleClearTemp();
+                navigate("/");
               }}
             >
               Home
