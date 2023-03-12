@@ -195,19 +195,43 @@ const getUserById = (request, response) => {
 const createSchedule = (req, res) => {
   let d_ = new Date();
   let day_ = moment(d_).format("YYYY-MM-DD");
-  const { suitokb, shiharaidt, kaikeind, uketukedt, bumoncd_ykanr, biko } =
-    req.body;
-  let query = `INSERT INTO cmn.es_ydenpyo (denpyodt, suitokb, shiharaidt, kaikeind, uketukedt, bumoncd_ykanr, biko) 
+  const {
+    suitokb,
+    shiharaidt,
+    kaikeind,
+    uketukedt,
+    bumoncd_ykanr,
+    biko,
+    trips,
+    total,
+  } = req.body;
+  let query = `INSERT INTO cmn.es_ydenpyo (denpyodt, suitokb, shiharaidt, kaikeind, uketukedt, bumoncd_ykanr, biko, kingaku) 
   VALUES('${day_}', '${suitokb}', '${moment(shiharaidt).format(
     "YYYY-MM-DD"
   )}', ${kaikeind}, '${moment(uketukedt).format(
     "YYYY-MM-DD"
-  )}', ${bumoncd_ykanr}, '${biko}') RETURNING *`;
+  )}', ${bumoncd_ykanr}, '${biko}', ${total}) RETURNING *`;
   pool.query(query, (error, results) => {
     if (error) {
       throw error;
     }
-    res.status(201).send(`Datas added with ID: ${results.rows[0].denpyono}`);
+    trips.map(async (trip) => {
+      if (!trip.isDelete) {
+        let result = await pool.query(
+          `insert into cmn.es_ydenpyod(denpyono, idodt, shuppatsuplc, mokutekiplc, keiro, kingaku)
+        values($1, $2, $3, $4, $5, $6)`,
+          [
+            results.rows[0].denpyono,
+            moment(trip.idodt).format("YYYY-MM-DD"),
+            trip.shuppatsuplc,
+            trip.mokutekiplc,
+            trip.keiro,
+            trip.kingaku,
+          ]
+        );
+      }
+    });
+    res.status(201).send(`伝票番号: ${results.rows[0].denpyono}`);
   });
 };
 const updateSchedule = (req, res) => {
@@ -285,7 +309,7 @@ const updateSchedule = (req, res) => {
       if (error) {
         throw error;
       }
-      res.status(200).send(`Datas modified with ID: ${id}`);
+      res.status(200).send(`伝票番号: ${id}`);
     }
   );
 };
@@ -297,7 +321,7 @@ const deleteSchedule = async (request, response) => {
   const trips = await pool.query(
     `DELETE FROM cmn.es_ydenpyo WHERE denpyono = ${id}`
   );
-  response.status(200).send(`Schedules deleted with ID: ${id}`);
+  response.status(200).send(``);
   // pool.query(
   //   "DELETE FROM cmn.es_ydenpyo WHERE denpyono = $1",
   //   [id],
