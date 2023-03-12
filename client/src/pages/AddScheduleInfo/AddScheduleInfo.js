@@ -96,12 +96,19 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
             denpyodt: moment(initialValue?.denpyodt).format("DD-MM-YYYY"),
             shiharaidt: dayjs(initialValue?.shiharaidt),
             uketukedt: dayjs(initialValue?.uketukedt),
+            kaikeind: initialValue?.kaikeind
+              ? dayjs(initialValue?.kaikeind)
+              : null,
           });
           handleOnChangeRoomId(initialValue?.bumoncd_ykanr);
         }
       } else {
         form.setFieldsValue({
           ...scheduleData,
+          denpyono: scheduleData?.denpyono || null,
+          denpyodt: scheduleData?.denpyodt
+            ? moment(scheduleData?.denpyodt).format("DD-MM-YYYY")
+            : null,
           bumoncd_ykanr: scheduleData?.bumoncd_ykanr,
           shiharaidt: scheduleData?.shiharaidt
             ? dayjs(scheduleData?.shiharaidt)
@@ -110,7 +117,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
             ? dayjs(scheduleData?.uketukedt)
             : null,
           kaikeind: scheduleData?.kaikeind
-            ? dayjs(new Date(scheduleData?.kaikeind, 0))
+            ? dayjs(scheduleData?.kaikeind)
             : null,
         });
         handleOnChangeRoomId(scheduleData?.bumoncd_ykanr);
@@ -140,7 +147,8 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
     if (tripData?.length) {
       let sum = tripData.reduce(
         (accumulator, currentValue) =>
-          accumulator + (Number(currentValue?.kingaku) || 0),
+          accumulator +
+          (!currentValue?.isDelete ? Number(currentValue?.kingaku) : 0 || 0),
         0
       );
       setsumMoney(sum);
@@ -223,10 +231,16 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
-      console.log("response", response);
       if (isEditMode) {
         scheduleStore
-          .updateSchedule(id, { ...response, trips: tripData, total: sumMoney })
+          .updateSchedule(id, {
+            ...response,
+            trips: tripData,
+            total: sumMoney,
+            kaikeind: response.kaikeind
+              ? new Date(response.kaikeind).getFullYear()
+              : null,
+          })
           .then((res) => {
             setIsOpenEndModal({ open: true, mode: 1 });
             setResMessage(res);
@@ -234,7 +248,14 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
           .catch((err) => message.error("Fail to update!"));
       } else
         scheduleStore
-          .createSchedule({ ...response, trips: tripData, total: sumMoney })
+          .createSchedule({
+            ...response,
+            trips: tripData,
+            total: sumMoney,
+            kaikeind: response.kaikeind
+              ? new Date(response.kaikeind).getFullYear()
+              : null,
+          })
           .then((res) => {
             setIsOpenEndModal({ open: true, mode: 0 });
             setResMessage(res);
@@ -270,6 +291,27 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
       })
       .catch((err) => message.error("Fail to delete!"));
   };
+
+  const handleSaveTempRecord = () => {
+    let data = form.getFieldsValue([
+      "suitokb",
+      "shiharaidt",
+      "kaikeind",
+      "uketukedt",
+      "bumoncd_ykanr",
+      "biko",
+    ]);
+    let scheduleData = JSON.parse(localStorage.getItem("scheduleData"));
+    if (scheduleData) {
+      localStorage.setItem(
+        "scheduleData",
+        JSON.stringify({ ...scheduleData, ...data })
+      );
+    } else {
+      localStorage.setItem("scheduleData", JSON.stringify(data));
+    }
+  };
+
   return (
     <div className="p-3 pb-14 h-full overflow-y-auto">
       <HeaderTitle text={"予定伝票入力"} />
@@ -451,7 +493,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
                         }, delay);
                       });
                     }
-                    return later(100)
+                    return later(200)
                       .then((res) => Promise.resolve())
                       .catch((err) => Promise.reject(err));
                   },
@@ -508,15 +550,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
               <Button
                 className="bg-gray-500 text-white"
                 onClick={() => {
-                  let data = form.getFieldsValue([
-                    "suitokb",
-                    "shiharaidt",
-                    "kaikeind",
-                    "uketukedt",
-                    "bumoncd_ykanr",
-                    "biko",
-                  ]);
-                  localStorage.setItem("scheduleData", JSON.stringify(data));
+                  handleSaveTempRecord();
                   navigate(`/detail-schedule`);
                 }}
               >
@@ -538,6 +572,7 @@ function AddScheduleInfo({ commonStore, scheduleStore }) {
           return {
             onDoubleClick: () => {
               scheduleStore.setSelectedTrip(record);
+              handleSaveTempRecord();
               navigate(`/detail-schedule/${record?.gyono}`);
             },
           };

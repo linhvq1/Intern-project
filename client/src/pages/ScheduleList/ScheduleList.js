@@ -36,6 +36,8 @@ function ScheduleList({ scheduleStore, commonStore }) {
         0
       );
       setsumMoney(sum);
+    } else {
+      setsumMoney(0);
     }
   }, [scheduleStore.schedules]);
 
@@ -135,12 +137,13 @@ function ScheduleList({ scheduleStore, commonStore }) {
 
   const onSubmit = () => {
     form.validateFields().then((response) => {
-      console.log("response", moment(response.kaikeind).format("YYYY"));
       setloading(true);
       scheduleStore
         .searchScheduleList({
           ...response,
-          kaikeind: moment(response.kaikeind).format("YYYY"),
+          kaikeind: response.kaikeind
+            ? new Date(response.kaikeind).getFullYear()
+            : null,
         })
         .then(() => {
           setloading(false);

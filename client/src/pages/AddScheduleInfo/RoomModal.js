@@ -38,11 +38,6 @@ function RoomModal({ scheduleStore }) {
   const rowSelection = {
     selectedRowKeys,
     onChange: (selectedRowKeys, selectedRows) => {
-      console.log(
-        `selectedRowKeys: ${selectedRowKeys}`,
-        "selectedRows: ",
-        selectedRows
-      );
       setSelectedRowKeys(selectedRowKeys);
       if (selectedRowKeys) scheduleStore.setSelectedRoom(selectedRows[0]);
     },
