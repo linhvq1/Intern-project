@@ -176,6 +176,7 @@ const searchSchedule = (req, res) => {
       //   trip = resul.rows;
       // };
       results.rows[0].trips = [...trip.rows];
+      results.rows[0].kaikeind = moment(new Date(results.rows[0].kaikeind, 0));
       // console.log("trips", trip.rows);
       // const data = [...results.rows, ...trip.rows];
       // console.log("hjahhsdhj", results.rows);
